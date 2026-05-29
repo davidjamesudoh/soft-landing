@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #d6e5f3;
+  --foreground: #171717;
+  --white: #ffffff;
+  --black: #000000;
+  --primary: #f9f4e5;
+  --secondary: #fffcf5;
+  --brand-pink: #fdb4a5;
+  --red: #c6403f;
+}
+
+@theme {
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  --default-font-family: --default-font-feature-settings: normal;
+  --default-font-variation-settings: normal;
+  --default-mono-font-family:
+    ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+    "DejaVu Sans Mono", monospace;
+  --default-mono-font-feature-settings: normal;
+  --default-mono-font-variation-settings: normal;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-black: var(--black);
+  --color-white: var(--white);
+  --color-brand-pink: var(--brand-pink);
+  --color-red: var(--red);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+
+  --font-ed-lavonia: var(--font-ed-lavonia);
+  --font-new-kansas: var(--font-new-kansas);
+  --font-dm-sans: var(--font-dm-sans);
+
+  --breakpoint-2xl: 94.5rem;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-dm-sans), sans-serif;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+  overflow: hidden;
+}
+
+.container {
+  max-width: 1550px !important;
+  padding: 0 50px !important;
+  margin: 0 auto !important;
+}
+
+@media screen and (max-width: 768px) {
+  .container {
+    padding: 0 !important;
+  }
+}
+
+.font-ed-lavonia {
+  font-family: var(--font-ed-lavonia), serif;
+}
+
+.font-new-kansas {
+  font-family: var(--font-new-kansas), serif;
+}
+
+.font-dm-sans {
+  font-family: var(--font-dm-sans), sans-serif;
+}
+
+.mobile-nav-item {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: slideInUp 0.3s ease forwards;
+}
+
+@keyframes slideInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-dialog {
+  transform: translateY(100%);
+  animation: slideDialogUp 0.7s ease forwards;
+}
+
+@keyframes slideDialogUp {
+  to {
+    transform: translateY(0);
+  }
+}
