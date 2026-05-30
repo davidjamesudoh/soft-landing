@@ -90,7 +90,7 @@ export default function Header() {
 
       {/* Main header */}
       <header
-        className={`relative bg-background flex items-center justify-between py-3`}
+        className={`relative bg-secondary flex items-center justify-between py-3`}
       >
         {/* Mobile top bar: MENU | Logo | RSVP (hidden when overlay is open) */}
         {!isMenuOpen && (

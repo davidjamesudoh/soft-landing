@@ -1,13 +1,14 @@
 "use client";
 import { useState } from "react";
-import toast from "react-hot-toast";
 import { RsvpFormData } from "./schema";
 
-export function useContact() {
+export function useRsvp(onSuccess?: () => void) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const onSubmitToNotion = async (formData: RsvpFormData) => {
+  const onSubmit = async (formData: RsvpFormData) => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/rsvp", {
         method: "POST",
@@ -17,19 +18,24 @@ export function useContact() {
 
       const result = await res.json();
 
-      if (!result?.success) {
-        toast.error("Failed to submit RSVP.");
+      if (result?.duplicate) {
+        setError("Looks like you've already RSVP'd with this email or phone number.");
         return;
       }
 
-      toast.success("RSVP received! We'll see you there 🤍");
+      if (!result?.success) {
+        setError("Something went wrong. Please try again.");
+        return;
+      }
+
+      onSuccess?.();
     } catch (err) {
       console.error(err);
-      toast.error("Something went wrong. Please try again.");
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  return { loading, onSubmitToNotion };
+  return { loading, error, onSubmit };
 }

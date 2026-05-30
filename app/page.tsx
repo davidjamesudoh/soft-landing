@@ -6,7 +6,7 @@ import Rsvp from "@/components/home/rsvp";
 
 export default function HomePage() {
   return (
-    <main className="relative min-h-screen w-full py-10">
+    <main className="relative py-10">
       <Hero />
       <Rsvp />
       <Countdown />

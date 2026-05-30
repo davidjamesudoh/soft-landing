@@ -3,12 +3,12 @@
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RsvpFormData, rsvpFormSchema, attendingOptions } from "./schema";
-import { useContact } from "./useContact";
+import { useRsvp } from "./useRsvp";
 import { Input } from "../ui/input";
 import Image from "next/image";
 
-export default function RsvpForm() {
-  const { loading, onSubmitToNotion } = useContact();
+export default function RsvpForm({ onSuccess }: { onSuccess?: () => void }) {
+  const { loading, error, onSubmit } = useRsvp(onSuccess);
   const {
     register,
     handleSubmit,
@@ -44,7 +44,7 @@ export default function RsvpForm() {
         Are you gonna be there when we say {`"I do"`}?
       </h2>
 
-      <form onSubmit={handleSubmit(onSubmitToNotion)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {/* Name */}
         <Input
           label="Full name"
@@ -117,6 +117,10 @@ export default function RsvpForm() {
             </p>
           )}
         </div>
+
+        {error && (
+          <p className="text-red-500 text-sm text-center">{error}</p>
+        )}
 
         <div className="w-fit mx-auto">
           <button

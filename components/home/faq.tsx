@@ -8,7 +8,7 @@ import { faqItems } from "@/lib/data";
 
 export default function FAQ() {
   return (
-    <section id="faq" className="pt-8 md:pt-12 px-3 md:px-6">
+    <section id="faq" className="pt-8 md:pt-12 px-4 md:px-6">
       <div className="container mx-auto">
         <h2 className="font-ed-lavonia text-black text-5xl md:text-7xl mb-11 text-center">
           Frequetly Asked Questions
