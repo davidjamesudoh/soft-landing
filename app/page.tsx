@@ -7,7 +7,7 @@ import Rsvp from "@/components/home/rsvp";
 
 export default function HomePage() {
   return (
-    <main className="relative py-10">
+    <main className="relative">
       <Hero />
       <OurStory />
       <Rsvp />

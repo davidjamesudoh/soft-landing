@@ -86,14 +86,8 @@ export default function RootLayout({
       >
         <Header />
 
-        {/* <div className="p-4 pt-0 bg-background"> */}
-        {/* <div className="flex-1 max-h-[calc(100vh-98px)] overflow-y-auto scroll-smooth bg-white rounded-2xl border border-black"> */}
-        {/* <SmoothScroll /> */}
-
         {children}
         <Footer />
-        {/* </div> */}
-        {/* </div> */}
       </body>
     </html>
   );

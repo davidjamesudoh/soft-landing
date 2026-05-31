@@ -90,11 +90,11 @@ export default function Header() {
 
       {/* Main header */}
       <header
-        className={`relative bg-secondary flex items-center justify-between py-3`}
+        className={`fixed top-0 w-full z-50 flex items-center justify-between py-3`}
       >
         {/* Mobile top bar: MENU | Logo | RSVP (hidden when overlay is open) */}
         {!isMenuOpen && (
-          <div className="flex md:hidden items-center justify-between w-full">
+          <div className="flex md:hidden items-center justify-between w-full px-[25px]">
             <button
               onClick={() => setIsMenuOpen(true)}
               className={`cursor-pointer ${mobileBarClass}`}
