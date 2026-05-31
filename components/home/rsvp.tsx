@@ -1,21 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useSyncExternalStore, useState } from "react";
 import Image from "next/image";
 import * as Dialog from "@radix-ui/react-dialog";
 import RsvpForm from "@/components/rsvpForm";
 
-export default function Rsvp() {
-  const [hasRsvpd, setHasRsvpd] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      localStorage.getItem("rsvp_submitted") === "true",
+const RSVP_KEY = "rsvp_submitted";
+
+function useRsvpd() {
+  return useSyncExternalStore(
+    (callback) => {
+      window.addEventListener("storage", callback);
+      return () => window.removeEventListener("storage", callback);
+    },
+    () => localStorage.getItem(RSVP_KEY) === "true",
+    () => false,
   );
+}
+
+export default function Rsvp() {
+  const hasRsvpd = useRsvpd();
   const [open, setOpen] = useState(false);
 
   const handleSuccess = () => {
-    localStorage.setItem("rsvp_submitted", "true");
-    setHasRsvpd(true);
+    localStorage.setItem(RSVP_KEY, "true");
+    window.dispatchEvent(new Event("storage"));
     setOpen(false);
   };
 
@@ -47,13 +56,9 @@ export default function Rsvp() {
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-6">
               <h2 className="font-ed-lavonia text-6xl md:text-7xl text-center text-brand-pink">
                 {hasRsvpd ? (
-                  <>
-                    Thank <br /> You!
-                  </>
+                  <>Thank <br /> You!</>
                 ) : (
-                  <>
-                    Kindly <br /> R.S.V.P
-                  </>
+                  <>Kindly <br /> R.S.V.P</>
                 )}
               </h2>
 

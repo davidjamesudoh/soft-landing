@@ -1,37 +1,40 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 const WEDDING_DATE = new Date("2026-10-16T00:00:00");
+let cachedSnapshot = { days: 0, hours: 0, seconds: 0 };
+const getServerSnapshot = () => cachedSnapshot;
 
 function getTimeLeft() {
   const now = new Date();
   const diff = WEDDING_DATE.getTime() - now.getTime();
 
-  if (diff <= 0) return { /* weeks: 0, */ days: 0, hours: 0, seconds: 0 };
+  const days = diff <= 0 ? 0 : Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = diff <= 0 ? 0 : Math.floor(diff / (1000 * 60 * 60)) % 24;
+  const seconds = diff <= 0 ? 0 : Math.floor(diff / 1000) % 60;
 
-  const totalSeconds = Math.floor(diff / 1000);
-  const totalHours = Math.floor(diff / (1000 * 60 * 60));
-  const totalDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+  if (
+    cachedSnapshot.days === days &&
+    cachedSnapshot.hours === hours &&
+    cachedSnapshot.seconds === seconds
+  ) {
+    return cachedSnapshot;
+  }
 
-  // const weeks = Math.floor(totalDays / 7);
-  const days = totalDays;
-  const hours = totalHours % 24;
-  const seconds = totalSeconds % 60;
-
-  return { /* weeks, */ days, hours, seconds };
+  cachedSnapshot = { days, hours, seconds };
+  return cachedSnapshot;
 }
 
 export default function Countdown() {
-  const [timeLeft, setTimeLeft] = useState(getTimeLeft);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeLeft(getTimeLeft());
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
+  const timeLeft = useSyncExternalStore(
+    (callback) => {
+      const interval = setInterval(callback, 1000);
+      return () => clearInterval(interval);
+    },
+    getTimeLeft,
+    getServerSnapshot,
+  );
 
   const units = [
     // { label: "Weeks", value: timeLeft.weeks },
