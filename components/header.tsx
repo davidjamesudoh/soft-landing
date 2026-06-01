@@ -4,20 +4,28 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const desktopNavLinks = [
-  { title: "Our Story", link: "#our-story" },
-  { title: "RSVP", link: "#rsvp" },
-  { title: "Countdown", link: "#countdown" },
-  { title: "Gift Registry", link: "#gift-registry" },
-  { title: "Schedule", link: "#schedule" },
-  { title: "FAQ", link: "#faq" },
+  { title: "Our Story", link: "#our-story", isExternal: false },
+  { title: "RSVP", link: "#rsvp", isExternal: false },
+  { title: "Countdown", link: "#countdown", isExternal: false },
+  {
+    title: "Gift Registry",
+    link: "https://www.thingstogetme.com/2274681a67cad",
+    isExternal: true,
+  },
+  { title: "Schedule", link: "#schedule", isExternal: false },
+  { title: "FAQ", link: "#faq", isExternal: false },
 ];
 
 const mobileNavLinks = [
-  { title: "Our Story", link: "#our-story" },
-  { title: "Countdown", link: "#countdown" },
-  { title: "Gift Registry", link: "#gift-registry" },
-  { title: "Schedule", link: "#schedule" },
-  { title: "FAQ", link: "#faq" },
+  { title: "Our Story", link: "#our-story", isExternal: false },
+  { title: "Countdown", link: "#countdown", isExternal: false },
+  {
+    title: "Gift Registry",
+    link: "https://www.thingstogetme.com/2274681a67cad",
+    isExternal: true,
+  },
+  { title: "Schedule", link: "#schedule", isExternal: false },
+  { title: "FAQ", link: "#faq", isExternal: false },
 ];
 
 export default function Header() {
@@ -75,9 +83,10 @@ export default function Header() {
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <Link
-                    className={`px-2.5 py-0.5 inline-block text-2xl hover:text-3xl hover:italic text-black font-medium`}
                     href={link.link}
                     onClick={() => setIsMenuOpen(false)}
+                    target={link.isExternal ? "_blank" : "_self"}
+                    className={`px-2.5 py-0.5 inline-block text-2xl hover:text-3xl hover:italic text-black font-medium`}
                   >
                     {link.title}
                   </Link>
@@ -150,6 +159,7 @@ export default function Header() {
               <Link
                 key={index}
                 href={link.link}
+                target={link.isExternal ? "_blank" : "_self"}
                 className="text-black px-2.5 py-0.5 inline-block text-lg font-medium"
               >
                 {link.title}

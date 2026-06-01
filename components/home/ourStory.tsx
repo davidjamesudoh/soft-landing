@@ -11,20 +11,20 @@ const CONFIG = {
   lerp: 0.07,
 };
 
-const storyText = [
-  "1 Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
-  "2 Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
-  "3 while attending college in Boston. Jennifer Heintz and Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015 ",
-  "4 Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
-  "5 Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
-  "6 Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
-  "7 while attending college in Boston. Jennifer Heintz and Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015 ",
-  "8 Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
-  "9 Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
-  "10 Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
-  "11 while attending college in Boston. Jennifer Heintz and Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015 ",
-  "12 Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
-];
+// const storyText = [
+//   "1 Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
+//   "2 Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
+//   "3 while attending college in Boston. Jennifer Heintz and Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015 ",
+//   "4 Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
+//   "5 Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
+//   "6 Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
+//   "7 while attending college in Boston. Jennifer Heintz and Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015 ",
+//   "8 Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
+//   "9 Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
+//   "10 Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
+//   "11 while attending college in Boston. Jennifer Heintz and Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015 ",
+//   "12 Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
+// ];
 
 export default function OurStory() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -163,8 +163,8 @@ export default function OurStory() {
       ) {
         activeImageNumber = (mostVisibleLayer as (typeof layerData)[0])
           .imageNumber;
-        storyTextRef.current.textContent =
-          storyText[activeImageNumber - 1] ?? "";
+        // storyTextRef.current.textContent =
+        //   storyText[activeImageNumber - 1] ?? "";
       }
 
       if (percentRef.current) {
@@ -194,13 +194,15 @@ export default function OurStory() {
       >
         <div className="container mx-auto text-white px-4">
           <h2 className="font-ed-lavonia text-5xl md:text-7xl mb-11 text-center">
-            Our Story
+            Soft Landing
           </h2>
           <p
             ref={storyTextRef}
             className="text-xs md:text-sm max-w-[350px] md:max-w-[500px] px-4 mx-auto text-center"
           >
-            {storyText[0]}
+            {/* {storyText[0]} */}
+            We arrived too late to be each other’s first love, but we arrived
+            perfectly on time to be the love of each other’s lives.
           </p>
         </div>
         <div className="absolute bottom-[2.5rem] right-[5%] z-10 text-white/70 text-xs flex items-center gap-2">
