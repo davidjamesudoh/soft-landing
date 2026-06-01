@@ -20,6 +20,7 @@ export default function Hero() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const imageWrapRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLHeadingElement>(null);
+  const floatTweenRef = useRef<gsap.core.Tween | null>(null);
 
   useEffect(() => {
     const sectionEl = sectionRef.current!;
@@ -35,6 +36,25 @@ export default function Hero() {
     // end:   16px below the bottom edge of the small card
     const textTopStart = VH - 120;
     const textTopEnd = (VH + TARGET_H) / 2 + 16;
+
+    const startFloat = () => {
+      if (floatTweenRef.current) return;
+      floatTweenRef.current = gsap.to(imageWrapEl, {
+        y: -12,
+        boxShadow: "0 32px 48px rgba(0,0,0,0.22)",
+        duration: 2.2,
+        ease: "sine.inOut",
+        yoyo: true,
+        repeat: -1,
+      });
+    };
+
+    const stopFloat = () => {
+      if (!floatTweenRef.current) return;
+      floatTweenRef.current.kill();
+      floatTweenRef.current = null;
+      gsap.set(imageWrapEl, { y: 0, boxShadow: "none" });
+    };
 
     const onScroll = () => {
       const raw = Math.max(0, Math.min(1, window.scrollY / ANIMATION_SCROLL));
@@ -52,12 +72,21 @@ export default function Hero() {
         fontSize,
         color: `rgb(${channel},${channel},${channel})`,
       });
+
+      if (progress >= 1) {
+        startFloat();
+      } else {
+        stopFloat();
+      }
     };
 
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
 
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      stopFloat();
+    };
   }, []);
 
   return (
@@ -86,7 +115,6 @@ export default function Hero() {
             top: "calc(100vh - 120px)",
             fontSize: FONT_START,
             color: "rgb(255,255,255)",
-            textShadow: "0 2px 12px rgba(0,0,0,0.35)",
           }}
         >
           Tomini & David

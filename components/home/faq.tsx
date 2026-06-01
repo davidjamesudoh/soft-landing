@@ -22,7 +22,7 @@ export default function FAQ() {
                 value={item.id}
                 className={`px-4 py-2 ${index % 2 === 0 ? "bg-primary" : "bg-secondary"}`}
               >
-                <AccordionTrigger className="text-left font-semibold hover:no-underline">
+                <AccordionTrigger className="font-new-kansas text-left font-semibold hover:no-underline">
                   {item.question}
                 </AccordionTrigger>
                 <AccordionContent className="text-brand-dark-gray leading-relaxed">
