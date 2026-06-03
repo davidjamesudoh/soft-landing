@@ -49,30 +49,33 @@ export default function Countdown() {
   ];
 
   return (
-    <section
-      id="countdown"
-      className="grid grid-cols-2 md:gird-cols-4 gap-10 py-12 md:py-24 px-10 max-w-[320px] mx-auto"
-    >
-      {/* <section
-      id="countdown"
-      className="flex items-center justify-center gap-4 py-12 md:py-24 px-10"
-    > */}
-      {units.map((unit, i) => (
-        // <div key={unit.label} className="flex items-center gap-4">
-        <div key={unit.label} className="">
-          <div className="flex flex-col items-center">
-            <span className="text-7xl md:text-7xl font-ed-lavonia">
-              {String(unit.value).padStart(2, "0")}
-            </span>
-            <span className="text-sm uppercase font-semibold mt-1">
-              {unit.label}
-            </span>
+    // <section
+    //   id="countdown"
+    //   className="space-y-5 py-12 md:py-24 px-10 "
+    // >
+    <section id="countdown" className="space-y-5 py-10 md:py-18 px-6">
+      <p className="text-xs uppercase font-semibold text-center">
+        THE COUNTDOWN IS ON!
+      </p>
+      {/* <div className="grid grid-cols-2 md:gird-cols-4 gap-10 max-w-[320px] mx-auto"> */}
+
+      <div className="flex items-center justify-center gap-6">
+        {units.map((unit, i) => (
+          // <div key={unit.label} className="flex items-center gap-4">
+          <div key={unit.label} className="">
+            <div className="flex flex-col items-center">
+              <span className="text-5xl md:text-7xl text-green-dark font-ed-lavonia">
+                {String(unit.value).padStart(2, "0")}
+              </span>
+              <span className="text-xs uppercase font-semibold mt-1">
+                {unit.label}
+              </span>
+            </div>
           </div>
-          {/* {i < units.length - 1 && (
-            <span className="text-4xl font-light mb-4">:</span>
-          )} */}
-        </div>
-      ))}
+        ))}
+      </div>
+
+      <div className="w-full h-px max-w-[174px] mx-auto mt-14 bg-green-dark" />
     </section>
   );
 }

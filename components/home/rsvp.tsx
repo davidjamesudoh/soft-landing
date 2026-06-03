@@ -45,7 +45,7 @@ export default function Rsvp() {
 
       <div className="relative z-10 min-h-screen overflow-hidden flex items-center justify-center rounded-2xl border border-black">
         <Image
-          src="/images/rsvp1.png"
+          src="/images/rsvp.png"
           fill
           className="object-cover"
           alt=""
@@ -93,8 +93,9 @@ export default function Rsvp() {
                   <Dialog.Portal>
                     <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50" />
                     <Dialog.Content className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10">
+                      <Dialog.Title className="sr-only">RSVP Form</Dialog.Title>
                       <div className="relative w-full max-w-2xl">
-                        <Dialog.Close className="absolute -top-3 -right-3 z-10 w-8 h-8 bg-black text-white flex items-center justify-center text-lg leading-none">
+                        <Dialog.Close className="absolute -top-3 right-0 z-10 w-8 h-8 rounded-full bg-brand-pink text-white flex items-center justify-center text-lg leading-none">
                           ×
                         </Dialog.Close>
                         <RsvpForm onSuccess={handleSuccess} />

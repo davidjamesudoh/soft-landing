@@ -3,6 +3,7 @@ import Countdown from "@/components/home/countdown";
 import FAQ from "@/components/home/faq";
 import Hero from "@/components/home/hero";
 import OurStory from "@/components/home/ourStory";
+import Registry from "@/components/home/registry";
 import Rsvp from "@/components/home/rsvp";
 
 export default function HomePage() {
@@ -12,6 +13,7 @@ export default function HomePage() {
       <OurStory />
       <Rsvp />
       <Countdown />
+      <Registry />
       <FAQ />
     </main>
   );

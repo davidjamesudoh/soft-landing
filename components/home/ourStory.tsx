@@ -150,13 +150,25 @@ export default function OurStory() {
       .fromTo(
         softRef.current!.children,
         { y: -30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6, ease: "back.out(1.4)", stagger: 0.07 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.6,
+          ease: "back.out(1.4)",
+          stagger: 0.07,
+        },
         0,
       )
       .fromTo(
         landingRef.current!.children,
         { y: -30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6, ease: "back.out(1.4)", stagger: 0.07 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.6,
+          ease: "back.out(1.4)",
+          stagger: 0.07,
+        },
         0.3,
       )
       .fromTo(
@@ -172,9 +184,10 @@ export default function OurStory() {
 
     const handleScroll = () => {
       const scrolled = window.scrollY - sectionAbsoluteTop;
+
+      // tunnel + nav color logic (unchanged — only active once section is pinned)
       if (scrolled <= 0) {
         targetScroll = initialScroll;
-        tl.reverse();
         // above this section — hero handles nav color, don't override
       } else {
         targetScroll = Math.min(
@@ -183,7 +196,14 @@ export default function OurStory() {
         );
         // white while pinned (active), black once the section has exited
         setNavColor(scrolled <= sectionScrollDistance ? "white" : "black");
+      }
+
+      // text reveal: play as soon as section enters viewport from the bottom,
+      // reverse when it scrolls back out of view
+      if (scrolled > -window.innerHeight * 0.6) {
         tl.play();
+      } else {
+        tl.reverse();
       }
     };
 
@@ -291,7 +311,7 @@ export default function OurStory() {
           </h2>
           <p
             ref={storyTextRef}
-            className="text-xs md:text-sm max-w-[350px] md:max-w-[500px] px-4 mx-auto text-center"
+            className="text-sm md:text-base max-w-[310px] md:max-w-[400px] px-4 mx-auto text-center"
           >
             {/* {storyText[0]} */}
             We arrived too late to be each other’s first love, but we arrived

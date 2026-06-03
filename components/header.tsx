@@ -6,27 +6,30 @@ import { useNavColor } from "@/context/navColor";
 
 const desktopNavLinks = [
   { title: "Our Story", link: "#our-story", isExternal: false },
-  { title: "RSVP", link: "#rsvp", isExternal: false },
+  { title: "R.S.V.P", link: "#rsvp", isExternal: false },
+  { title: "Schedule", link: "#schedule", isExternal: false },
+
   { title: "Countdown", link: "#countdown", isExternal: false },
   {
-    title: "Gift Registry",
-    link: "https://www.thingstogetme.com/2274681a67cad",
-    isExternal: true,
+    title: "Our Registry",
+    link: "#registry",
+    isExternal: false,
   },
-  { title: "Schedule", link: "#schedule", isExternal: false },
   { title: "FAQ", link: "#faq", isExternal: false },
 ];
 
 const mobileNavLinks = [
   { title: "Our Story", link: "#our-story", isExternal: false },
-  { title: "Countdown", link: "#countdown", isExternal: false },
-  {
-    title: "Gift Registry",
-    link: "https://www.thingstogetme.com/2274681a67cad",
-    isExternal: true,
-  },
+  // { title: "Countdown", link: "#countdown", isExternal: false },
+  { title: "R.S.V.P", link: "#rsvp", isExternal: false },
   { title: "Schedule", link: "#schedule", isExternal: false },
-  { title: "FAQ", link: "#faq", isExternal: false },
+
+  {
+    title: "Our Registry",
+    link: "#registry",
+    isExternal: false,
+  },
+  { title: "Faq", link: "#faq", isExternal: false },
 ];
 
 export default function Header() {
@@ -50,12 +53,12 @@ export default function Header() {
     <>
       {/* Mobile full-screen menu overlay */}
       {isMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-[60] bg-primary flex flex-col">
+        <div className="md:hidden fixed inset-0 z-[60] bg-green-light flex flex-col">
           {/* Overlay top bar: CLOSE | Logo | RSVP */}
           <div className="flex items-center justify-between px-[25px] py-4">
             <button
               onClick={() => setIsMenuOpen(false)}
-              className={`cursor-pointer ${mobileBarClass} text-black`}
+              className={`cursor-pointer ${mobileBarClass} !text-black`}
             >
               CLOSE
             </button>
@@ -73,7 +76,7 @@ export default function Header() {
             <Link
               href="#rsvp"
               onClick={() => setIsMenuOpen(false)}
-              className={`${mobileBarClass} text-black`}
+              className={`${mobileBarClass} !text-black`}
             >
               RSVP
             </Link>
@@ -81,7 +84,7 @@ export default function Header() {
 
           {/* Nav links */}
           <nav className="flex-1 flex flex-col items-center justify-center">
-            <ul className="space-y-5 flex flex-col items-center">
+            <ul className="space-y-5 flex flex-col gap-6 items-center">
               {mobileNavLinks.map((link, index) => (
                 <li
                   key={index}
@@ -92,7 +95,7 @@ export default function Header() {
                     href={link.link}
                     onClick={() => setIsMenuOpen(false)}
                     target={link.isExternal ? "_blank" : "_self"}
-                    className={`px-2.5 py-0.5 inline-block text-2xl hover:text-3xl hover:italic text-black font-medium`}
+                    className={`px-2.5 py-0.5 inline-block font-ed-lavonia text-6xl hover:italic text-black font-medium`}
                   >
                     {link.title}
                   </Link>

@@ -11,6 +11,8 @@
   --secondary: #fffcf5;
   --brand-pink: #fdb4a5;
   --red: #c6403f;
+  --green: #e8e3a6;
+  --green-dark: #c4bf4b;
 }
 
 @theme {
@@ -32,6 +34,8 @@
   --color-red: var(--red);
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
+  --color-green-light: var(--green);
+  --color-green-dark: var(--green-dark);
 
   --font-ed-lavonia: var(--font-ed-lavonia);
   --font-new-kansas: var(--font-new-kansas);
