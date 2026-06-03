@@ -33,8 +33,17 @@ export default function Rsvp() {
   };
 
   return (
-    <section id="rsvp" className="mb-8 md:mb-12 px-4">
-      <div className="relative min-h-screen overflow-hidden flex items-center justify-center rounded-2xl border border-black">
+    <section id="rsvp" className="relative mb-8 md:mb-12 px-4">
+      {/* top gradient — blends from the section above */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-[145px] pointer-events-none z-10"
+        style={{
+          background: "linear-gradient(to bottom, #ffb1b1, transparent)",
+        }}
+      />
+
+      <div className="relative z-10 min-h-screen overflow-hidden flex items-center justify-center rounded-2xl border border-black">
         <Image
           src="/images/rsvp1.png"
           fill
@@ -56,9 +65,13 @@ export default function Rsvp() {
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-6">
               <h2 className="font-ed-lavonia text-6xl md:text-7xl text-center text-brand-pink">
                 {hasRsvpd ? (
-                  <>Thank <br /> You!</>
+                  <>
+                    Thank <br /> You!
+                  </>
                 ) : (
-                  <>Kindly <br /> R.S.V.P</>
+                  <>
+                    Kindly <br /> R.S.V.P
+                  </>
                 )}
               </h2>
 

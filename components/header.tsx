@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useNavColor } from "@/context/navColor";
 
 const desktopNavLinks = [
   { title: "Our Story", link: "#our-story", isExternal: false },
@@ -30,6 +31,7 @@ const mobileNavLinks = [
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { color } = useNavColor();
 
   useEffect(() => {
     document.body.style.overflow = isMenuOpen ? "hidden" : "";
@@ -38,7 +40,11 @@ export default function Header() {
     };
   }, [isMenuOpen]);
 
-  const mobileBarClass = `px-2.5 py-0.5 text-base font-medium text-black`;
+  const isWhite = color === "white";
+  const linkColor = isWhite ? "text-white" : "text-black";
+  const logoFilter = isWhite ? "brightness(0) invert(1)" : "none";
+  // mobile bar uses dynamic color; overlay always stays black
+  const mobileBarClass = `px-2.5 py-0.5 text-base font-medium transition-colors duration-300 ${linkColor}`;
 
   return (
     <>
@@ -117,7 +123,8 @@ export default function Header() {
                 alt="logo"
                 width={101}
                 height={132}
-                className="w-[50px]"
+                className="w-[50px] transition-[filter] duration-300"
+                style={{ filter: logoFilter }}
               />
             </Link>
 
@@ -135,7 +142,7 @@ export default function Header() {
               <Link
                 key={index}
                 href={link.link}
-                className="text-black px-2.5 py-0.5 inline-block text-lg font-medium"
+                className={`px-2.5 py-0.5 inline-block text-lg font-medium transition-colors duration-300 ${linkColor}`}
               >
                 {link.title}
               </Link>
@@ -149,7 +156,8 @@ export default function Header() {
               alt="logo"
               width={101}
               height={132}
-              className="w-[50px]"
+              className="w-[50px] transition-[filter] duration-300"
+              style={{ filter: logoFilter }}
             />
           </Link>
 
@@ -160,7 +168,7 @@ export default function Header() {
                 key={index}
                 href={link.link}
                 target={link.isExternal ? "_blank" : "_self"}
-                className="text-black px-2.5 py-0.5 inline-block text-lg font-medium"
+                className={`px-2.5 py-0.5 inline-block text-lg font-medium transition-colors duration-300 ${linkColor}`}
               >
                 {link.title}
               </Link>

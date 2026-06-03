@@ -1,22 +1,20 @@
 "use client";
 import { useEffect } from "react";
 import Lenis from "lenis";
+import { gsap } from "gsap";
 
 export default function SmoothScroll() {
   useEffect(() => {
-    const lenis = new Lenis({
-      duration: 2.0,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    });
+    const lenis = new Lenis({ lerp: 0.1 });
 
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-
-    requestAnimationFrame(raf);
+    // Drive Lenis through GSAP's ticker so it stays in sync with all
+    // other GSAP animations running on the page (hero float, ourStory tunnel).
+    const onTick = (time: number) => lenis.raf(time * 1000);
+    gsap.ticker.add(onTick);
+    gsap.ticker.lagSmoothing(0);
 
     return () => {
+      gsap.ticker.remove(onTick);
       lenis.destroy();
     };
   }, []);

@@ -3,6 +3,7 @@
 import { gsap } from "gsap";
 import { useEffect, useRef } from "react";
 import styles from "../../styles/tunnelSlide.module.css";
+import { useStableNavColor } from "@/context/navColor";
 
 const CONFIG = {
   totalImages: 12,
@@ -31,6 +32,9 @@ export default function OurStory() {
   const spotlightRef = useRef<HTMLDivElement>(null);
   const percentRef = useRef<HTMLSpanElement>(null);
   const storyTextRef = useRef<HTMLParagraphElement>(null);
+  const softRef = useRef<HTMLSpanElement>(null);
+  const landingRef = useRef<HTMLSpanElement>(null);
+  const setNavColor = useStableNavColor();
 
   useEffect(() => {
     const totalLayerCount = CONFIG.totalImages;
@@ -103,6 +107,65 @@ export default function OurStory() {
       });
     }
 
+    // shared: story text starts hidden for both options
+    gsap.set(storyTextRef.current, { opacity: 0 });
+
+    // ── OPTION A — words drop in one after the other ──────────────────────────
+    // const tl = gsap
+    //   .timeline({ paused: true })
+    //   .fromTo(
+    //     softRef.current,
+    //     { y: -60, opacity: 0 },
+    //     { y: 0, opacity: 1, duration: 1.1, ease: "back.out(1.4)" },
+    //     0,
+    //   )
+    //   .fromTo(
+    //     landingRef.current,
+    //     { y: -60, opacity: 0 },
+    //     { y: 0, opacity: 1, duration: 1.1, ease: "back.out(1.4)" },
+    //     0.35,
+    //   )
+    //   .fromTo(
+    //     storyTextRef.current,
+    //     { opacity: 0 },
+    //     { opacity: 1, duration: 0.8, ease: "power2.out" },
+    //     1.1,
+    //   );
+
+    // ── OPTION B — letters stagger in one by one ───────────────────────────────
+    const splitLetters = (el: HTMLSpanElement) => {
+      const text = el.textContent ?? "";
+      el.innerHTML = text
+        .split("")
+        .map((c) => `<span style="display:inline-block;opacity:0">${c}</span>`)
+        .join("");
+    };
+    splitLetters(softRef.current!);
+    splitLetters(landingRef.current!);
+    // wrapper opacity must be 1 so only the letter children control visibility
+    gsap.set([softRef.current, landingRef.current], { opacity: 1 });
+
+    const tl = gsap
+      .timeline({ paused: true })
+      .fromTo(
+        softRef.current!.children,
+        { y: -30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6, ease: "back.out(1.4)", stagger: 0.07 },
+        0,
+      )
+      .fromTo(
+        landingRef.current!.children,
+        { y: -30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6, ease: "back.out(1.4)", stagger: 0.07 },
+        0.3,
+      )
+      .fromTo(
+        storyTextRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.8, ease: "power2.out" },
+        1.0,
+      );
+
     let targetScroll = initialScroll;
     let currentScroll = initialScroll;
     let activeImageNumber = -1;
@@ -111,11 +174,16 @@ export default function OurStory() {
       const scrolled = window.scrollY - sectionAbsoluteTop;
       if (scrolled <= 0) {
         targetScroll = initialScroll;
+        tl.reverse();
+        // above this section — hero handles nav color, don't override
       } else {
         targetScroll = Math.min(
           maxScroll,
           initialScroll + scrolled * CONFIG.scrollSpeed,
         );
+        // white while pinned (active), black once the section has exited
+        setNavColor(scrolled <= sectionScrollDistance ? "white" : "black");
+        tl.play();
       }
     };
 
@@ -184,17 +252,42 @@ export default function OurStory() {
         spotlightEl.removeChild(tunnelEl);
       }
     };
-  }, []);
+  }, [setNavColor]);
 
   return (
-    <section id="our-story" ref={sectionRef} className="mb-4 md:mb-8">
+    <section id="our-story" ref={sectionRef} className="">
       <div
         ref={spotlightRef}
-        className="sticky top-0 h-screen w-full bg-[#D9788B] py-8 md:py-12 overflow-hidden perspective-[1000px]"
+        className="sticky top-0 h-screen w-full bg-[#D9788B] pb-8 md:pb-12 pt-24 md:pt-[110px] overflow-hidden perspective-[1000px]"
       >
-        <div className="container mx-auto text-white px-4">
+        {/* section-edge gradients — blend into surrounding page background */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 h-[145px] z-10 pointer-events-none"
+          style={{
+            background: "linear-gradient(to bottom, #ffb1b1, transparent)",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-0 h-[145px] z-10 pointer-events-none"
+          style={{
+            background: "linear-gradient(to top, #ffb1b1, transparent)",
+          }}
+        />
+
+        <div className="relative z-20 container mx-auto text-white px-4">
           <h2 className="font-ed-lavonia text-5xl md:text-7xl mb-11 text-center">
-            Soft Landing
+            <span ref={softRef} className="inline-block" style={{ opacity: 0 }}>
+              Soft
+            </span>{" "}
+            <span
+              ref={landingRef}
+              className="inline-block"
+              style={{ opacity: 0 }}
+            >
+              Landing
+            </span>
           </h2>
           <p
             ref={storyTextRef}
@@ -205,7 +298,7 @@ export default function OurStory() {
             perfectly on time to be the love of each other’s lives.
           </p>
         </div>
-        <div className="absolute bottom-[2.5rem] right-[5%] z-10 text-white/70 text-xs flex items-center gap-2">
+        <div className="absolute z-20 bottom-[2.5rem] right-[5%] z-20 text-white/70 text-sm font-semibold flex items-center gap-2">
           <span>SCROLL↓</span>
           <span ref={percentRef}>0%</span>
         </div>

@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
-import Header from "@/components/header";
-import Footer from "@/components/footer";
-// import SmoothScroll from "@/components/smoothScroller";
+import Providers from "@/components/providers";
 
 const EDLavonia = localFont({
   src: [
@@ -84,10 +82,7 @@ export default function RootLayout({
       <body
         className={`${EDLavonia.variable} ${dmSans.variable} ${NewKansas.variable} antialiased font-dm-sans flex flex-col`}
       >
-        <Header />
-
-        {children}
-        <Footer />
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
