@@ -89,8 +89,8 @@ export default function OurStory() {
       itemEl.style.top = `${itemY}px`;
 
       const imageEl = document.createElement("img");
-      imageEl.src = `/images/our-story/${imageNumber}.webp`;
-      imageEl.alt = `Image ${imageNumber}`;
+      imageEl.src = `/images/our-story/${imageNumber}.jpg`;
+      imageEl.alt = `Artboard ${imageNumber}`;
       itemEl.appendChild(imageEl);
 
       const overlayEl = document.createElement("div");
@@ -109,28 +109,6 @@ export default function OurStory() {
 
     // shared: story text starts hidden for both options
     gsap.set(storyTextRef.current, { opacity: 0 });
-
-    // ── OPTION A — words drop in one after the other ──────────────────────────
-    // const tl = gsap
-    //   .timeline({ paused: true })
-    //   .fromTo(
-    //     softRef.current,
-    //     { y: -60, opacity: 0 },
-    //     { y: 0, opacity: 1, duration: 1.1, ease: "back.out(1.4)" },
-    //     0,
-    //   )
-    //   .fromTo(
-    //     landingRef.current,
-    //     { y: -60, opacity: 0 },
-    //     { y: 0, opacity: 1, duration: 1.1, ease: "back.out(1.4)" },
-    //     0.35,
-    //   )
-    //   .fromTo(
-    //     storyTextRef.current,
-    //     { opacity: 0 },
-    //     { opacity: 1, duration: 0.8, ease: "power2.out" },
-    //     1.1,
-    //   );
 
     // ── OPTION B — letters stagger in one by one ───────────────────────────────
     const splitLetters = (el: HTMLSpanElement) => {
@@ -280,22 +258,6 @@ export default function OurStory() {
         ref={spotlightRef}
         className="sticky top-0 h-screen w-full bg-[#D9788B] pb-8 md:pb-12 pt-24 md:pt-[110px] overflow-hidden perspective-[1000px]"
       >
-        {/* section-edge gradients — blend into surrounding page background */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-x-0 top-0 h-[145px] z-10 pointer-events-none"
-          style={{
-            background: "linear-gradient(to bottom, #ffb1b1, transparent)",
-          }}
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-x-0 bottom-0 h-[145px] z-10 pointer-events-none"
-          style={{
-            background: "linear-gradient(to top, #ffb1b1, transparent)",
-          }}
-        />
-
         <div className="relative z-20 container mx-auto text-white px-4">
           <h2 className="font-ed-lavonia text-5xl md:text-7xl mb-11 text-center">
             <span ref={softRef} className="inline-block" style={{ opacity: 0 }}>
@@ -318,7 +280,17 @@ export default function OurStory() {
             perfectly on time to be the love of each other’s lives.
           </p>
         </div>
-        <div className="absolute z-20 bottom-[2.5rem] right-[5%] z-20 text-white/70 text-sm font-semibold flex items-center gap-2">
+        <button
+          onClick={() =>
+            document
+              .getElementById("schedule")
+              ?.scrollIntoView({ behavior: "smooth" })
+          }
+          className="absolute z-20 bottom-[2.5rem] left-[5%] text-white text-sm font-semibold border border-white rounded-full px-2.5 py-1.5"
+        >
+          Skip →
+        </button>
+        <div className="absolute z-20 bottom-[2.5rem] right-[5%] text-white text-sm font-semibold flex items-center gap-2">
           <span>SCROLL↓</span>
           <span ref={percentRef}>0%</span>
         </div>

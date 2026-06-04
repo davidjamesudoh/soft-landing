@@ -53,7 +53,7 @@ export default function Countdown() {
     //   id="countdown"
     //   className="space-y-5 py-12 md:py-24 px-10 "
     // >
-    <section id="countdown" className="space-y-5 py-10 md:py-18 px-6">
+    <section id="countdown" className="space-y-5 py-18 md:py-20 px-6">
       <p className="text-xs uppercase font-semibold text-center">
         THE COUNTDOWN IS ON!
       </p>

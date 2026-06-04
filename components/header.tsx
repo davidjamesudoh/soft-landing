@@ -3,34 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useNavColor } from "@/context/navColor";
-
-const desktopNavLinks = [
-  { title: "Our Story", link: "#our-story", isExternal: false },
-  { title: "R.S.V.P", link: "#rsvp", isExternal: false },
-  { title: "Schedule", link: "#schedule", isExternal: false },
-
-  { title: "Countdown", link: "#countdown", isExternal: false },
-  {
-    title: "Our Registry",
-    link: "#registry",
-    isExternal: false,
-  },
-  { title: "FAQ", link: "#faq", isExternal: false },
-];
-
-const mobileNavLinks = [
-  { title: "Our Story", link: "#our-story", isExternal: false },
-  // { title: "Countdown", link: "#countdown", isExternal: false },
-  { title: "R.S.V.P", link: "#rsvp", isExternal: false },
-  { title: "Schedule", link: "#schedule", isExternal: false },
-
-  {
-    title: "Our Registry",
-    link: "#registry",
-    isExternal: false,
-  },
-  { title: "Faq", link: "#faq", isExternal: false },
-];
+import { desktopNavLinks, mobileNavLinks } from "@/lib/data";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -45,9 +18,8 @@ export default function Header() {
 
   const isWhite = color === "white";
   const linkColor = isWhite ? "text-white" : "text-black";
-  const logoFilter = isWhite ? "brightness(0) invert(1)" : "none";
   // mobile bar uses dynamic color; overlay always stays black
-  const mobileBarClass = `px-2.5 py-0.5 text-base font-medium transition-colors duration-300 ${linkColor}`;
+  const mobileBarClass = `px-2.5 py-0.5 font-bold text-lg transition-colors duration-300 ${linkColor}`;
 
   return (
     <>
@@ -65,7 +37,7 @@ export default function Header() {
 
             <Link href="/">
               <Image
-                src="/images/logo.png"
+                src="/images/logo-white.png"
                 alt="logo"
                 width={101}
                 height={132}
@@ -112,7 +84,7 @@ export default function Header() {
       >
         {/* Mobile top bar: MENU | Logo | RSVP (hidden when overlay is open) */}
         {!isMenuOpen && (
-          <div className="flex md:hidden items-center justify-between w-full px-[25px]">
+          <div className="flex md:hidden items-center justify-between w-screen px-[25px]">
             <button
               onClick={() => setIsMenuOpen(true)}
               className={`cursor-pointer ${mobileBarClass}`}
@@ -122,12 +94,11 @@ export default function Header() {
 
             <Link href="/">
               <Image
-                src="/images/logo.png"
+                src="/images/logo-white.png"
                 alt="logo"
                 width={101}
                 height={132}
-                className="w-[50px] transition-[filter] duration-300"
-                style={{ filter: logoFilter }}
+                className="w-[50px] duration-300"
               />
             </Link>
 
@@ -155,12 +126,11 @@ export default function Header() {
           {/* Logo — center */}
           <Link href="/" className="mx-4">
             <Image
-              src="/images/logo.png"
+              src="/images/logo-white.png"
               alt="logo"
               width={101}
               height={132}
-              className="w-[50px] transition-[filter] duration-300"
-              style={{ filter: logoFilter }}
+              className="w-[50px] duration-300"
             />
           </Link>
 

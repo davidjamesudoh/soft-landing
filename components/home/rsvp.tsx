@@ -1,11 +1,14 @@
 "use client";
 
-import { useSyncExternalStore, useState } from "react";
+import { useSyncExternalStore, useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import * as Dialog from "@radix-ui/react-dialog";
 import RsvpForm from "@/components/rsvpForm";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const RSVP_KEY = "rsvp_submitted";
+gsap.registerPlugin(ScrollTrigger);
 
 function useRsvpd() {
   return useSyncExternalStore(
@@ -21,6 +24,8 @@ function useRsvpd() {
 export default function Rsvp() {
   const hasRsvpd = useRsvpd();
   const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const innerRef = useRef<HTMLDivElement | null>(null);
 
   const handleSuccess = () => {
     localStorage.setItem(RSVP_KEY, "true");
@@ -32,20 +37,45 @@ export default function Rsvp() {
     document.getElementById("faq")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  return (
-    <section id="rsvp" className="relative mb-8 md:mb-12 px-4">
-      {/* top gradient — blends from the section above */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-[145px] pointer-events-none z-10"
-        style={{
-          background: "linear-gradient(to bottom, #ffb1b1, transparent)",
-        }}
-      />
+  useEffect(() => {
+    const section = containerRef.current;
+    const inner = innerRef.current;
+    if (!section || !inner) return;
 
-      <div className="relative z-10 min-h-screen overflow-hidden flex items-center justify-center rounded-2xl border border-black">
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: section,
+        start: "top 80%",
+        end: "top 30%",
+        scrub: 1,
+      },
+    });
+
+    tl.to(section, { paddingLeft: 16, paddingRight: 16, ease: "none" }, 0).to(
+      inner,
+      { borderRadius: 20, ease: "none" },
+      0,
+    );
+
+    return () => {
+      tl.scrollTrigger?.kill();
+    };
+  }, []);
+
+  return (
+    <section
+      ref={containerRef}
+      id="rsvp"
+      className="relative my-8 md:my-12 px-0"
+    >
+      {/* top gradient — blends from the section above */}
+
+      <div
+        ref={innerRef}
+        className="relative z-10 min-h-[90vh] overflow-hidden flex items-center justify-center rounded-none"
+      >
         <Image
-          src="/images/rsvp.png"
+          src="/images/rsvp1.png"
           fill
           className="object-cover"
           alt=""
