@@ -9,7 +9,7 @@ import Schedule from "@/components/home/schedule";
 
 export default function HomePage() {
   return (
-    <main className="relative overflow-x-hidden">
+    <main className="relative">
       <Hero />
       <OurStory />
       <Schedule />

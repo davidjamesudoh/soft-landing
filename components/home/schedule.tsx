@@ -26,8 +26,8 @@ export default function Schedule() {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: section,
-        start: "top 80%",
-        end: "bottom center",
+        start: "top 100%",
+        end: "bottom 110%",
         scrub: true,
       },
     });
