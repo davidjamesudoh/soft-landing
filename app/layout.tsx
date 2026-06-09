@@ -34,7 +34,6 @@ const dmSans = DM_Sans({
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {

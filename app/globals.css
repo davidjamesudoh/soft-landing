@@ -54,8 +54,6 @@ body {
     color 0.3s ease;
   overflow-x: hidden;
   width: 100vw;
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .container {
