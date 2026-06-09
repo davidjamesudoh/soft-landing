@@ -51,9 +51,9 @@ export default function Countdown() {
   return (
     // <section
     //   id="countdown"
-    //   className="space-y-5 py-12 md:py-24 px-10 "
+    //   className="space-y-5 pt-18 md:pt-20 px-6"
     // >
-    <section id="countdown" className="space-y-5 py-18 md:py-20 px-6">
+    <section id="registry" className="space-y-5 pt-20 md:pt-30 px-6">
       <p className="text-xs uppercase font-semibold text-center">
         THE COUNTDOWN IS ON!
       </p>

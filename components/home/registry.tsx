@@ -1,6 +1,6 @@
 export default function Registry() {
   return (
-    <section id="registry" className="pb-18 md:pb-20 px-4 md:px-6">
+    <section className="py-18 md:py-20 px-4 md:px-6">
       <div className="container mx-auto">
         <h2 className="font-ed-lavonia text-black text-5xl md:text-7xl mb-3 text-center">
           Our Registry

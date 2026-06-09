@@ -6,6 +6,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import RsvpForm from "@/components/rsvpForm";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { smoothScrollTo } from "@/components/smoothScroller";
 
 const RSVP_KEY = "rsvp_submitted";
 gsap.registerPlugin(ScrollTrigger);
@@ -33,9 +34,7 @@ export default function Rsvp() {
     setOpen(false);
   };
 
-  const scrollToFaq = () => {
-    document.getElementById("faq")?.scrollIntoView({ behavior: "smooth" });
-  };
+  const scrollToFaq = () => smoothScrollTo("#faq");
 
   useEffect(() => {
     const section = containerRef.current;
@@ -45,9 +44,9 @@ export default function Rsvp() {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: section,
-        start: "top 80%",
-        end: "top 30%",
-        scrub: 1,
+        start: "top 95%",
+        end: "top 10%",
+        scrub: 2,
       },
     });
 
@@ -66,7 +65,7 @@ export default function Rsvp() {
     <section
       ref={containerRef}
       id="rsvp"
-      className="relative my-8 md:my-12 px-0"
+      className="relative px-0 pt-20 md:pt-20"
     >
       {/* top gradient — blends from the section above */}
 

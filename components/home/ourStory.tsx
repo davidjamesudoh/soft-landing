@@ -4,6 +4,7 @@ import { gsap } from "gsap";
 import { useEffect, useRef } from "react";
 import styles from "../../styles/tunnelSlide.module.css";
 import { useStableNavColor } from "@/context/navColor";
+import { smoothScrollTo } from "@/components/smoothScroller";
 
 const CONFIG = {
   totalImages: 12,
@@ -27,9 +28,14 @@ const CONFIG = {
 //   "12 Mike Wagenheim met in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015. Jennifer Heintz met Mike Wagenheim in a design course in 2015",
 // ];
 
-export default function OurStory() {
+export default function OurStory({
+  onMusicReady,
+}: {
+  onMusicReady?: () => void;
+}) {
   const sectionRef = useRef<HTMLElement>(null);
-  const spotlightRef = useRef<HTMLDivElement>(null);
+  // tunnelRef is the overflow-hidden 3D container — separate from text
+  const tunnelRef = useRef<HTMLDivElement>(null);
   const percentRef = useRef<HTMLSpanElement>(null);
   const storyTextRef = useRef<HTMLParagraphElement>(null);
   const softRef = useRef<HTMLSpanElement>(null);
@@ -41,18 +47,10 @@ export default function OurStory() {
     const visibleDepth = 2 * CONFIG.layerGap;
     const exitPoint = 1500;
 
-    // Start one full layerGap behind the camera so layer 0 appears small
-    // in the distance rather than already large and close.
-    //
-    // At z = -layerGap (-2500), perspective math gives:
-    //   size = 1000 / (1000 - (-2500)) = 1000 / 3500 ≈ 29% of CSS size  ✓ small
-    //
-    // Old value (750) gave: 1000 / (1000 - 750) = 4× CSS size  ✗ huge & off-screen
     const initialScroll = -CONFIG.layerGap;
-
     const maxScroll = (totalLayerCount - 1) * CONFIG.layerGap + exitPoint;
 
-    const spotlightEl = spotlightRef.current!;
+    const tunnelEl = tunnelRef.current!;
     const sectionEl = sectionRef.current!;
 
     const sectionScrollDistance =
@@ -63,9 +61,9 @@ export default function OurStory() {
       sectionEl.getBoundingClientRect().top + window.scrollY;
 
     // Build tunnel DOM
-    const tunnelEl = document.createElement("div");
-    tunnelEl.classList.add(styles.tunnel);
-    spotlightEl.appendChild(tunnelEl);
+    const tunnelWrapEl = document.createElement("div");
+    tunnelWrapEl.classList.add(styles.tunnel);
+    tunnelEl.appendChild(tunnelWrapEl);
 
     const layerData: {
       el: HTMLDivElement;
@@ -98,7 +96,7 @@ export default function OurStory() {
       itemEl.appendChild(overlayEl);
 
       layerEl.appendChild(itemEl);
-      tunnelEl.appendChild(layerEl);
+      tunnelWrapEl.appendChild(layerEl);
       layerData.push({
         el: layerEl,
         baseZ: -i * CONFIG.layerGap,
@@ -107,10 +105,10 @@ export default function OurStory() {
       });
     }
 
-    // shared: story text starts hidden for both options
+    // shared: story text starts hidden
     gsap.set(storyTextRef.current, { opacity: 0 });
 
-    // ── OPTION B — letters stagger in one by one ───────────────────────────────
+    // letters stagger in from top
     const splitLetters = (el: HTMLSpanElement) => {
       const text = el.textContent ?? "";
       el.innerHTML = text
@@ -120,7 +118,6 @@ export default function OurStory() {
     };
     splitLetters(softRef.current!);
     splitLetters(landingRef.current!);
-    // wrapper opacity must be 1 so only the letter children control visibility
     gsap.set([softRef.current, landingRef.current], { opacity: 1 });
 
     const tl = gsap
@@ -131,7 +128,7 @@ export default function OurStory() {
         {
           y: 0,
           opacity: 1,
-          duration: 0.6,
+          duration: 0.7,
           ease: "back.out(1.4)",
           stagger: 0.07,
         },
@@ -143,7 +140,7 @@ export default function OurStory() {
         {
           y: 0,
           opacity: 1,
-          duration: 0.6,
+          duration: 0.7,
           ease: "back.out(1.4)",
           stagger: 0.07,
         },
@@ -163,21 +160,16 @@ export default function OurStory() {
     const handleScroll = () => {
       const scrolled = window.scrollY - sectionAbsoluteTop;
 
-      // tunnel + nav color logic (unchanged — only active once section is pinned)
       if (scrolled <= 0) {
         targetScroll = initialScroll;
-        // above this section — hero handles nav color, don't override
       } else {
         targetScroll = Math.min(
           maxScroll,
           initialScroll + scrolled * CONFIG.scrollSpeed,
         );
-        // white while pinned (active), black once the section has exited
         setNavColor(scrolled <= sectionScrollDistance ? "white" : "black");
       }
 
-      // text reveal: play as soon as section enters viewport from the bottom,
-      // reverse when it scrolls back out of view
       if (scrolled > -window.innerHeight * 0.6) {
         tl.play();
       } else {
@@ -246,53 +238,71 @@ export default function OurStory() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
       gsap.ticker.remove(tickerCallback);
-      if (spotlightEl.contains(tunnelEl)) {
-        spotlightEl.removeChild(tunnelEl);
+      if (tunnelEl.contains(tunnelWrapEl)) {
+        tunnelEl.removeChild(tunnelWrapEl);
       }
     };
   }, [setNavColor]);
 
   return (
     <section id="our-story" ref={sectionRef} className="">
-      <div
-        ref={spotlightRef}
-        className="sticky top-0 h-screen w-full bg-[#D9788B] pb-8 md:pb-12 pt-24 md:pt-[110px] overflow-hidden perspective-[1000px]"
-      >
-        <div className="relative z-20 container mx-auto text-white px-4">
-          <h2 className="font-ed-lavonia text-5xl md:text-7xl mb-11 text-center">
-            <span ref={softRef} className="inline-block" style={{ opacity: 0 }}>
-              Soft
-            </span>{" "}
-            <span
-              ref={landingRef}
-              className="inline-block"
-              style={{ opacity: 0 }}
+      {/* Outer sticky — no overflow-hidden so title descenders render cleanly */}
+      <div className="sticky top-0 h-dvh w-full bg-[#D9788B]">
+        {/* Tunnel container — isolated overflow-hidden for 3D layers */}
+        <div
+          ref={tunnelRef}
+          className="absolute inset-0 overflow-hidden perspective-[1000px]"
+        />
+
+        {/* Text content — rendered above tunnel, not clipped */}
+        <div className="relative z-20 container mx-auto text-white px-4 pt-24 md:pt-[110px] pb-8 md:pb-12">
+          <div className="text-white px-4 pt-24 md:pt-[110px] pb-8 md:pb-12">
+            <h2 className="font-ed-lavonia text-5xl md:text-7xl mb-11 text-center overflow-visible">
+              <span
+                ref={softRef}
+                className="inline-block overflow-visible"
+                style={{ opacity: 0 }}
+              >
+                Soft
+              </span>{" "}
+              <span
+                ref={landingRef}
+                className="inline-block overflow-visible"
+                style={{ opacity: 0 }}
+              >
+                Landing
+              </span>
+            </h2>
+            <p
+              ref={storyTextRef}
+              className="text-sm md:text-base max-w-[310px] md:max-w-[400px] px-4 mx-auto text-center"
             >
-              Landing
-            </span>
-          </h2>
-          <p
-            ref={storyTextRef}
-            className="text-sm md:text-base max-w-[310px] md:max-w-[400px] px-4 mx-auto text-center"
-          >
-            {/* {storyText[0]} */}
-            We arrived too late to be each other’s first love, but we arrived
-            perfectly on time to be the love of each other’s lives.
-          </p>
+              {/* {storyText[0]} */}
+              We arrived too late to be each other&apos;s first love, but we
+              arrived perfectly on time to be the love of each other&apos;s
+              lives.
+            </p>
+          </div>
         </div>
-        <button
-          onClick={() =>
-            document
-              .getElementById("schedule")
-              ?.scrollIntoView({ behavior: "smooth" })
-          }
-          className="absolute z-20 bottom-[2.5rem] left-[5%] text-white text-sm font-semibold border border-white rounded-full px-2.5 py-1.5"
-        >
-          Skip →
-        </button>
-        <div className="absolute z-20 bottom-[2.5rem] right-[5%] text-white text-sm font-semibold flex items-center gap-2">
-          <span>SCROLL↓</span>
-          <span ref={percentRef}>0%</span>
+
+        {/* Bottom bar: [music slot] [skip center] [scroll right] */}
+        <div className="absolute z-20 bottom-[2.5rem] left-0 right-0 flex items-center justify-between px-[5%]">
+          {/* Left slot — music controls render here via fixed positioning */}
+          <div className="w-[80px]" />
+
+          {/* Skip in the middle */}
+          <button
+            onClick={() => smoothScrollTo("#schedule")}
+            className="text-white text-sm font-semibold border border-white rounded-full px-2.5 py-1.5"
+          >
+            Skip →
+          </button>
+
+          {/* Scroll indicator right */}
+          <div className="text-white text-sm font-semibold flex items-center gap-2">
+            <span>SCROLL↓</span>
+            <span ref={percentRef}>0%</span>
+          </div>
         </div>
       </div>
     </section>

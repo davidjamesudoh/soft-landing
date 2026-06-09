@@ -17,9 +17,10 @@ export default function Header() {
   }, [isMenuOpen]);
 
   const isWhite = color === "white";
+  const logoSrc = "/images/logo-white.png";
   const linkColor = isWhite ? "text-white" : "text-black";
   // mobile bar uses dynamic color; overlay always stays black
-  const mobileBarClass = `px-2.5 py-0.5 font-bold text-lg transition-colors duration-300 ${linkColor}`;
+  const mobileBarClass = `px-2.5 py-0.5 font-bold text-lg transition-colors duration-500 ${linkColor}`;
 
   return (
     <>
@@ -37,7 +38,7 @@ export default function Header() {
 
             <Link href="/">
               <Image
-                src="/images/logo-white.png"
+                src={logoSrc}
                 alt="logo"
                 width={101}
                 height={132}
@@ -94,7 +95,7 @@ export default function Header() {
 
             <Link href="/">
               <Image
-                src="/images/logo-white.png"
+                src={logoSrc}
                 alt="logo"
                 width={101}
                 height={132}
@@ -116,7 +117,7 @@ export default function Header() {
               <Link
                 key={index}
                 href={link.link}
-                className={`px-2.5 py-0.5 inline-block text-lg font-medium transition-colors duration-300 ${linkColor}`}
+                className={`px-2.5 py-0.5 inline-block text-lg font-medium transition-colors duration-500 ${linkColor}`}
               >
                 {link.title}
               </Link>
@@ -126,7 +127,7 @@ export default function Header() {
           {/* Logo — center */}
           <Link href="/" className="mx-4">
             <Image
-              src="/images/logo-white.png"
+              src={logoSrc}
               alt="logo"
               width={101}
               height={132}
@@ -141,7 +142,7 @@ export default function Header() {
                 key={index}
                 href={link.link}
                 target={link.isExternal ? "_blank" : "_self"}
-                className={`px-2.5 py-0.5 inline-block text-lg font-medium transition-colors duration-300 ${linkColor}`}
+                className={`px-2.5 py-0.5 inline-block text-lg font-medium transition-colors duration-500 ${linkColor}`}
               >
                 {link.title}
               </Link>

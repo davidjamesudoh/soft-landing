@@ -5,7 +5,7 @@ import { gsap } from "gsap";
 import { useEffect, useRef } from "react";
 import { useStableNavColor } from "@/context/navColor";
 
-const ANIMATION_SCROLL = 2000;
+const ANIMATION_SCROLL = 1500;
 const HOLD_SCROLL = 100;
 const TARGET_W = 270;
 const TARGET_H = 365;
@@ -23,6 +23,7 @@ export default function Hero() {
   const textRef = useRef<SVGSVGElement>(null);
   const gradientRef = useRef<HTMLDivElement>(null);
   const floatTweenRef = useRef<gsap.core.Tween | null>(null);
+  const heroCompleteFiredRef = useRef(false);
   const setNavColor = useStableNavColor();
 
   useEffect(() => {
@@ -65,7 +66,14 @@ export default function Hero() {
       const fillChannel = Math.round(255 * (1 - progress));
 
       gsap.set(imageWrapEl, { width: w, height: h });
-      gsap.set(gradientEl, { height: 85 * progress });
+
+      // Gradient only appears after image is fully scaled down, fading in
+      // over the HOLD_SCROLL buffer before the next section begins.
+      const gradientProgress =
+        progress >= 1
+          ? Math.min(1, (window.scrollY - ANIMATION_SCROLL) / HOLD_SCROLL)
+          : 0;
+      gsap.set(gradientEl, { height: 85 * gradientProgress });
       // use 100vh in the calc so it matches CSS exactly on iOS Safari
       textEl.style.top = `calc(100vh - ${100 + 100 * progress}px)`;
       textEl.style.width = `${svgWidth}%`;
@@ -73,10 +81,14 @@ export default function Hero() {
         attr: { fill: `rgb(${fillChannel},${fillChannel},${fillChannel})` },
       });
 
-      setNavColor(window.scrollY < 700 ? "white" : "black");
+      setNavColor(progress >= 0 ? "black" : "white");
 
       if (progress >= 1) {
         startFloat();
+        if (!heroCompleteFiredRef.current) {
+          heroCompleteFiredRef.current = true;
+          window.dispatchEvent(new CustomEvent("hero-complete"));
+        }
       } else {
         stopFloat();
       }
@@ -94,11 +106,11 @@ export default function Hero() {
   return (
     <div ref={sectionRef} className="relative overflow-x-clip">
       {/* no overflow-hidden here so the text can escape below the image */}
-      <div className="sticky top-0 h-screen w-full flex items-center justify-center z-0">
+      <div className="sticky top-0 h-dvh w-full flex items-center justify-center z-0">
         <div
           ref={imageWrapRef}
           className="relative overflow-hidden"
-          style={{ width: "100%", height: "100vh" }}
+          style={{ width: "100%", height: "100dvh" }}
         >
           <Image
             src="/images/hero-image.jpg"

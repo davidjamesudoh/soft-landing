@@ -31,6 +31,12 @@ const dmSans = DM_Sans({
   subsets: ["latin"],
 });
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
   title: "Tomini and David",
   description: "Tomini and David",

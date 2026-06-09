@@ -3,7 +3,7 @@ export const faqItems = [
     id: "1",
     question: "What’s the colour of the day?",
     answer:
-      "Our colours are coral and white. We'd love for you to join in the palette if you can! Just one small ask: please avoid ivory and cream, as those are saved for the bride.",
+      "Our colours are coral and white. We'd love for you to join in the palette if you can!",
   },
   {
     id: "2",
@@ -15,7 +15,7 @@ export const faqItems = [
     id: "3",
     question: "When should I RSVP?",
     answer:
-      "The best time is now and the next best time is by 7th June 2026. Your RSVP helps us take care of all the little details that make this day special. We can't wait to have you celebrate with us.",
+      "The best time is now and the next best time is by 24th August 2026. Your RSVP helps us take care of all the little details that make this day special. We can't wait to have you celebrate with us.",
   },
   {
     id: "4",
@@ -34,7 +34,7 @@ export const faqItems = [
     id: "6",
     question: "Can I take photos?",
     answer:
-      "We're going unplugged indoors. Please refrain from taking photos indoors so everyone can be fully present and avoid any obstructions during the ceremony.. Feel free to take as many photos as you like outdoor! We'll also be sharing the official photos after the wedding.",
+      "- We're going unplugged indoors. Please refrain from standing to take photos indoors to avoid any obstructions during the ceremony so everyone can be fully present. Feel free to take as many photos as you like outdoor! We'll also be sharing the official photos after the wedding.",
   },
 ];
 
