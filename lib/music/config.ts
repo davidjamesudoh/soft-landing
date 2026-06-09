@@ -10,10 +10,12 @@
  *   NEXT_PUBLIC_MUSIC_PLAYLIST_ID=37i9dQZF1DXxxxxxxxx
  */
 
-export const MUSIC_PROVIDER = "youtube";
-// (process.env.NEXT_PUBLIC_MUSIC_PROVIDER as "youtube" | "spotify") ??
-// "youtube";
+export const MUSIC_PROVIDER: "youtube" | "spotify" = "youtube";
+// To switch providers, change the line above to "spotify"
+// (or wire it back to process.env.NEXT_PUBLIC_MUSIC_PROVIDER).
 
 export const MUSIC_PLAYLIST_ID =
   process.env.NEXT_PUBLIC_MUSIC_PLAYLIST_ID ||
-  "PLDIoUOhQQPlWm_njQtKkNIk5RYSGgzomm";
+  // TEST playlist (NoCopyrightSounds — guaranteed embeddable). Swap for the
+  // real one once you confirm the chosen songs allow embedding.
+  "PLRBp0Fe2GpgnIh0AiYKh7o7HnYAej-5ph";

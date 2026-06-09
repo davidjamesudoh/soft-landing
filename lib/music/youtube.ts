@@ -27,16 +27,16 @@ export const youtubeController: MusicController = {
   },
 
   play() {
-    player?.playVideo();
+    if (typeof player?.playVideo === "function") player.playVideo();
   },
   pause() {
-    player?.pauseVideo();
+    if (typeof player?.pauseVideo === "function") player.pauseVideo();
   },
   next() {
-    player?.nextVideo();
+    if (typeof player?.nextVideo === "function") player.nextVideo();
   },
   prev() {
-    player?.previousVideo();
+    if (typeof player?.previousVideo === "function") player.previousVideo();
   },
 
   destroy() {

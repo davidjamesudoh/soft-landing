@@ -18,6 +18,7 @@ export default function MusicPlayer({ show }: { show: boolean }) {
   const [playerState, setPlayerState] = useState<PlayerState>("idle");
   const [track, setTrack] = useState<TrackInfo | null>(null);
   const [visible, setVisible] = useState(false);
+  const [ready, setReady] = useState(false);
   const controllerRef = useRef<MusicController | null>(null);
   const initiated = useRef(false);
 
@@ -46,6 +47,7 @@ export default function MusicPlayer({ show }: { show: boolean }) {
       controllerRef.current = controller;
 
       controller.init(CONTAINER_ID, MUSIC_PLAYLIST_ID, (state, trackInfo) => {
+        setReady(true); // first callback = player initialized & ready
         setPlayerState(state);
         if (trackInfo) setTrack(trackInfo);
       });
@@ -53,6 +55,10 @@ export default function MusicPlayer({ show }: { show: boolean }) {
 
     return () => {
       controllerRef.current?.destroy();
+      controllerRef.current = null;
+      // allow re-init on React Strict Mode's dev remount
+      initiated.current = false;
+      setReady(false);
     };
   }, [visible]);
 
@@ -161,10 +167,13 @@ export default function MusicPlayer({ show }: { show: boolean }) {
       className="flex items-center justify-between w-full transition-opacity duration-700"
       style={{ opacity: visible ? 1 : 0, color: col }}
     >
-      {/* Hidden iframe — Spotify / YouTube embeds render here */}
+      {/* Hidden iframe — Spotify / YouTube embeds render here.
+          Always mounted so the player can attach, even before ready. */}
       <div id={CONTAINER_ID} className="sr-only" aria-hidden />
 
-      {!isPlaying ? (
+      {/* Controls only appear once the player has signalled it's ready,
+          so clicks can't hit a not-yet-initialised player. */}
+      {!ready ? null : !isPlaying ? (
         // Idle or paused — only the Play Music button
         playMusicButton
       ) : supportsSkip ? (
