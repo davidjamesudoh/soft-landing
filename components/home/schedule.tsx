@@ -29,7 +29,6 @@ export default function Schedule() {
         start: "top 70%",
         end: "bottom 50%",
         scrub: true,
-        markers: true,
       },
     });
 
