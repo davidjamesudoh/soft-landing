@@ -166,22 +166,21 @@ export default function OurStory({
       if (stickyWrapEl.dataset.pin === state) return;
       stickyWrapEl.dataset.pin = state;
 
+      // Height never changes — toggling it causes iOS to recalculate scroll geometry
+      // and makes the address bar jump. Only position and bottomBar change.
       if (state === "pinned") {
         stickyWrapEl.style.position = "sticky";
         stickyWrapEl.style.top = "0";
-        stickyWrapEl.style.height = "130vh";
         bottomBarEl.style.bottom = "17rem";
       } else if (state === "before" || state === "after-out") {
         // Not yet in view or completely past — relative so address bar is unaffected
         stickyWrapEl.style.position = "relative";
         stickyWrapEl.style.top = "0";
-        stickyWrapEl.style.height = "100vh";
         bottomBarEl.style.bottom = "2.5rem";
       } else {
         // "after" — still transitioning out, keep sticky to avoid gap with Schedule
         stickyWrapEl.style.position = "sticky";
         stickyWrapEl.style.top = "0";
-        stickyWrapEl.style.height = "100vh";
         bottomBarEl.style.bottom = "2.5rem";
       }
       void stickyWrapEl.offsetHeight;
@@ -190,7 +189,7 @@ export default function OurStory({
     const handleScroll = () => {
       const scrolled = window.scrollY - getSectionTop();
 
-      if (scrolled <= 10) {
+      if (scrolled <= 2) {
         pin("before");
         targetScroll = initialScroll;
       } else if (scrolled <= sectionScrollDistance - 100) {
