@@ -187,7 +187,7 @@ export default function Hero() {
         </div>
 
         {/* bottom gradient — height grows from 0 as image shrinks */}
-        {/* <div
+        <div
           ref={gradientRef}
           aria-hidden="true"
           className="absolute inset-x-0 bottom-[-1px] pointer-events-none z-20"
@@ -195,7 +195,7 @@ export default function Hero() {
             height: 0,
             background: "linear-gradient( #fffcf5, #da788b)",
           }}
-        /> */}
+        />
 
         {/* text: starts overlaid on the image, moves below it */}
         <svg

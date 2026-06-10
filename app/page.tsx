@@ -8,6 +8,7 @@ import Registry from "@/components/home/registry";
 import Rsvp from "@/components/home/rsvp";
 import Schedule from "@/components/home/schedule";
 import MusicPlayer from "@/components/musicPlayer";
+import PageLoader from "@/components/pageLoader";
 
 export default function HomePage() {
   const [heroComplete, setHeroComplete] = useState(false);
@@ -20,8 +21,9 @@ export default function HomePage() {
 
   return (
     <main className="relative">
+      <PageLoader />
       <Hero />
-      {/* <OurStory /> */}
+      <OurStory />
       <Schedule />
       <Rsvp />
       <Countdown />
