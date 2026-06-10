@@ -55,15 +55,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://tominianddavid.fyi",
+    url: "https://softlanding.fyi",
     title: "Tomini and David",
     description: "Tomini and David",
     siteName: "Tomini and David",
     images: [
       {
-        url: "icon.svg",
-        width: 1200,
-        height: 630,
+        url: "https://softlanding.fyi/og-image.jpeg",
+        width: 953,
+        height: 500,
         alt: "Tomini and David",
       },
     ],
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Tomini and David",
     description: "Tomini and David",
-    images: ["icon.svg"],
+    images: ["https://softlanding.fyi/og-image.jpeg"],
   },
   robots: {
     index: true,

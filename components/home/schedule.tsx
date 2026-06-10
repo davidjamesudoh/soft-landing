@@ -26,17 +26,17 @@ export default function Schedule() {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: section,
-        start: "top 100%",
-        end: "bottom 110%",
+        start: "top 70%",
+        end: "bottom 50%",
         scrub: true,
       },
     });
 
-    tl.to(path1, { strokeDashoffset: 0, ease: "none" }, 0).to(
-      path2,
-      { strokeDashoffset: 0, ease: "none" },
-      0,
-    );
+    // path1 fills first, then path2 starts once path1 is done
+    tl.to(path1, { strokeDashoffset: 0, ease: "none" }).to(path2, {
+      strokeDashoffset: 0,
+      ease: "none",
+    });
 
     return () => {
       tl.scrollTrigger?.kill();
@@ -92,7 +92,7 @@ export default function Schedule() {
               {scheduleList.map((item, index) => (
                 <div
                   key={item.title}
-                  className={`max-w-[260px] p-5 bg-secondary  ${index % 2 === 0 ? "" : "ml-auto"}`}
+                  className={`max-w-[260px] p-3 bg-secondary  ${index % 2 === 0 ? "" : "ml-auto"}`}
                 >
                   <p className="mb-2 text-sm">{item.date}</p>
                   <h4 className="mb-3 text-base font-bold font-new-kansas">

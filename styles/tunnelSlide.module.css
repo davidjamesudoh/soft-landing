@@ -27,6 +27,11 @@
   transform-style: preserve-3d;
   z-index: 20;
 }
+@media screen and (max-width: 768px) {
+  .tunnel {
+    top: 38%;
+  }
+}
 
 .layer {
   position: absolute;
