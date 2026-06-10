@@ -245,13 +245,18 @@ export default function OurStory({
   }, [setNavColor]);
 
   return (
-    <section id="our-story" ref={sectionRef} className="">
-      {/* Outer sticky — no overflow-hidden so title descenders render cleanly */}
-      <div className="sticky top-0 h-dvh w-full bg-[#D9788B]">
+    <section id="our-story" ref={sectionRef} className="relative">
+      {/* Sticky pinned layer */}
+      <div className="sticky top-0 h-dvh w-full">
+        {/* Overfilling pink backdrop — same trick as the hero's 130dvh image:
+            it bleeds 30vh past the top and bottom so the iOS status bar /
+            floating address bar always have pink behind them, never a gap. */}
+        <div className="absolute inset-0 bg-[#D9788B]" />
+
         {/* Tunnel container — isolated overflow-hidden for 3D layers */}
         <div
           ref={tunnelRef}
-          className="absolute inset-0 overflow-hidden perspective-[1000px]"
+          className="absolute inset-0 overflow-clip perspective-[1000px]"
         />
 
         {/* Text content — rendered above tunnel, not clipped */}

@@ -44,8 +44,8 @@ export default function Rsvp() {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: section,
-        start: "top 95%",
-        end: "top 10%",
+        start: "top 55%",
+        end: "top 20%",
         scrub: 2,
       },
     });

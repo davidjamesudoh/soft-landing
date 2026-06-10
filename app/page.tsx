@@ -21,7 +21,7 @@ export default function HomePage() {
   return (
     <main className="relative">
       <Hero />
-      <OurStory />
+      {/* <OurStory /> */}
       <Schedule />
       <Rsvp />
       <Countdown />
@@ -29,7 +29,7 @@ export default function HomePage() {
       <FAQ />
 
       {/* Music player — fixed bottom-left, appears when hero image finishes scaling */}
-      {/* <div className="fixed bottom-[2.5rem] left-[5%] z-50">
+      {/* <div className="fixed left-[5%] right-[5%] z-50" style={{ bottom: "calc(2.5rem + env(safe-area-inset-bottom, 0px))" }}>
         <MusicPlayer show={heroComplete} />
       </div> */}
     </main>

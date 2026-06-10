@@ -19,6 +19,7 @@ function easeInOutCubic(t: number) {
 
 export default function Hero() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const stickyWrapRef = useRef<HTMLDivElement>(null);
   const imageWrapRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<SVGSVGElement>(null);
   const gradientRef = useRef<HTMLDivElement>(null);
@@ -28,11 +29,11 @@ export default function Hero() {
 
   useEffect(() => {
     const sectionEl = sectionRef.current!;
+    const stickyWrapEl = stickyWrapRef.current!;
     const imageWrapEl = imageWrapRef.current!;
     const textEl = textRef.current!;
     const gradientEl = gradientRef.current!;
 
-    const VW = window.innerWidth;
     const VH = window.innerHeight;
 
     sectionEl.style.height = `${ANIMATION_SCROLL + HOLD_SCROLL + VH}px`;
@@ -56,26 +57,81 @@ export default function Hero() {
       gsap.set(imageWrapEl, { y: 0, boxShadow: "none" });
     };
 
+    // Latched starting size — captured the moment scrolling begins so the
+    // handoff from dvh (CSS) to px (JS) is seamless on mobile.
+    let startW = 0;
+    let startH = 0;
+
     const onScroll = () => {
-      const raw = Math.max(0, Math.min(1, window.scrollY / ANIMATION_SCROLL));
+      const scrollY = window.scrollY;
+      const raw = Math.max(0, Math.min(1, scrollY / ANIMATION_SCROLL));
       const progress = easeInOutCubic(raw);
 
-      const w = VW + (TARGET_W - VW) * progress;
-      const h = VH + (TARGET_H - VH) * progress;
       const svgWidth = WIDTH_START + (WIDTH_END - WIDTH_START) * progress;
       const fillChannel = Math.round(255 * (1 - progress));
 
-      gsap.set(imageWrapEl, { width: w, height: h });
+      // Release point — where the sticky naturally lets go (end of the
+      // animation + hold). Past this we park the wrapper as `absolute` so it
+      // stops being an active sticky during the rest of the page.
+      const RELEASE = ANIMATION_SCROLL + HOLD_SCROLL;
+
+      if (scrollY <= 5) {
+        // At the top: keep the hero in normal flow (not sticky) so mobile
+        // browser bars never crop it. Reset the px latch.
+        startW = 0;
+        startH = 0;
+        if (stickyWrapEl.style.position !== "relative") {
+          stickyWrapEl.style.position = "relative";
+          stickyWrapEl.style.top = "";
+          stickyWrapEl.style.left = "";
+          stickyWrapEl.style.width = "";
+          // iOS Safari doesn't always reflow when un-sticking via JS —
+          // force it so the hero actually returns to flow and refills.
+          void stickyWrapEl.offsetHeight;
+        }
+        imageWrapEl.style.width = "100%";
+        imageWrapEl.style.height = "130dvh";
+      } else if (scrollY <= RELEASE) {
+        // Scrolling: pin the wrapper with sticky so the hero stays centred
+        // while it shrinks. Latch the live rendered size once for a seamless
+        // dvh→px handoff.
+        if (!startH) {
+          const rect = imageWrapEl.getBoundingClientRect();
+          startW = rect.width;
+          startH = rect.height;
+        }
+        if (stickyWrapEl.style.position !== "sticky") {
+          stickyWrapEl.style.position = "sticky";
+          stickyWrapEl.style.top = "0";
+          stickyWrapEl.style.left = "";
+          stickyWrapEl.style.width = "";
+          void stickyWrapEl.offsetHeight;
+        }
+        imageWrapEl.style.width = `${startW + (TARGET_W - startW) * progress}px`;
+        imageWrapEl.style.height = `${startH + (TARGET_H - startH) * progress}px`;
+      } else {
+        // Past the hero: park it where sticky released so it scrolls away with
+        // the page without remaining an active sticky element.
+        if (stickyWrapEl.style.position !== "relative") {
+          stickyWrapEl.style.position = "relative";
+          stickyWrapEl.style.top = `${RELEASE}px`;
+          stickyWrapEl.style.left = "0";
+          stickyWrapEl.style.width = "100%";
+          void stickyWrapEl.offsetHeight;
+        }
+        imageWrapEl.style.width = `${TARGET_W}px`;
+        imageWrapEl.style.height = `${TARGET_H}px`;
+      }
 
       // Gradient only appears after image is fully scaled down, fading in
       // over the HOLD_SCROLL buffer before the next section begins.
       const gradientProgress =
         progress >= 1
-          ? Math.min(1, (window.scrollY - ANIMATION_SCROLL) / HOLD_SCROLL)
+          ? Math.min(1, (scrollY - ANIMATION_SCROLL) / HOLD_SCROLL)
           : 0;
       gsap.set(gradientEl, { height: 85 * gradientProgress });
-      // use 100vh in the calc so it matches CSS exactly on iOS Safari
-      textEl.style.top = `calc(100vh - ${100 + 100 * progress}px)`;
+      // match the dvh-based image so the title sits flush at its bottom edge
+      textEl.style.top = `calc(100dvh - ${100 + 100 * progress}px)`;
       textEl.style.width = `${svgWidth}%`;
       gsap.set(textEl.querySelectorAll("path"), {
         attr: { fill: `rgb(${fillChannel},${fillChannel},${fillChannel})` },
@@ -96,9 +152,15 @@ export default function Hero() {
 
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+    // Mobile address bars show/hide via resize (not scroll) — re-run so the
+    // hero is reset to fill when the bar re-expands at the top.
+    window.addEventListener("resize", onScroll);
+    window.visualViewport?.addEventListener("resize", onScroll);
 
     return () => {
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      window.visualViewport?.removeEventListener("resize", onScroll);
       stopFloat();
     };
   }, [setNavColor]);
@@ -106,10 +168,13 @@ export default function Hero() {
   return (
     <div ref={sectionRef} className="relative overflow-x-clip">
       {/* no overflow-hidden here so the text can escape below the image */}
-      <div className="sticky top-0 h-dvh w-full flex items-center justify-center z-0">
+      <div
+        ref={stickyWrapRef}
+        className="relative top-0 h-dvh w-full flex items-center justify-center z-0"
+      >
         <div
           ref={imageWrapRef}
-          className="relative overflow-hidden"
+          className="relative overflow-clip"
           style={{ width: "100%", height: "100dvh" }}
         >
           <Image
@@ -122,7 +187,7 @@ export default function Hero() {
         </div>
 
         {/* bottom gradient — height grows from 0 as image shrinks */}
-        <div
+        {/* <div
           ref={gradientRef}
           aria-hidden="true"
           className="absolute inset-x-0 bottom-[-1px] pointer-events-none z-20"
@@ -130,13 +195,13 @@ export default function Hero() {
             height: 0,
             background: "linear-gradient( #fffcf5, #da788b)",
           }}
-        />
+        /> */}
 
         {/* text: starts overlaid on the image, moves below it */}
         <svg
           ref={textRef}
           className="absolute pointer-events-none z-10 text-[#333333]"
-          style={{ top: `calc(100vh - 100px)`, width: `${WIDTH_START}%` }}
+          style={{ top: `calc(100dvh - 100px)`, width: `${WIDTH_START}%` }}
           width="358"
           height="59"
           viewBox="0 0 358 59"

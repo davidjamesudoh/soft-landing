@@ -82,6 +82,7 @@ export default function Header() {
       {/* Main header */}
       <header
         className={`fixed top-0 w-full z-50 flex items-center justify-between py-3`}
+        style={{ paddingTop: "calc(0.75rem + env(safe-area-inset-top))" }}
       >
         {/* Mobile top bar: MENU | Logo | RSVP (hidden when overlay is open) */}
         {!isMenuOpen && (

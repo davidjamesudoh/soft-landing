@@ -45,13 +45,13 @@ export default function Schedule() {
 
   return (
     <section ref={sectionRef} className="relative pt-17 md:pt-20 px-4 md:px-6">
-      <div
+      {/* <div
         aria-hidden="true"
         className="absolute inset-x-0 top-[-40px] h-[85px] pointer-events-none z-10"
         style={{
           background: "linear-gradient(rgb(218 120 139), #fffcf5)",
         }}
-      />
+      /> */}
       <div id="schedule" className="relative z-20 max-w-[600px] mx-auto">
         <div className="pt-21">
           <h2 className="font-ed-lavonia text-black text-5xl md:text-7xl mb-10 text-center">
