@@ -34,6 +34,9 @@ const dmSans = DM_Sans({
 export const viewport = {
   width: "device-width",
   initialScale: 1,
+  // Extend content edge-to-edge, behind the iOS status bar and floating
+  // address bar, so sections scroll through them (translucent, no solid band).
+  viewportFit: "cover" as const,
 };
 
 export const metadata: Metadata = {
@@ -45,9 +48,9 @@ export const metadata: Metadata = {
   creator: "Tomini and David",
   publisher: "Tomini and David",
   icons: {
-    icon: "icon.png",
-    shortcut: "icon.png",
-    apple: "icon.png",
+    icon: "icon.svg",
+    shortcut: "icon.svg",
+    apple: "icon.svg",
   },
   openGraph: {
     type: "website",
@@ -58,7 +61,7 @@ export const metadata: Metadata = {
     siteName: "Tomini and David",
     images: [
       {
-        url: "icon.png",
+        url: "icon.svg",
         width: 1200,
         height: 630,
         alt: "Tomini and David",
@@ -69,7 +72,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Tomini and David",
     description: "Tomini and David",
-    images: ["icon.png"],
+    images: ["icon.svg"],
   },
   robots: {
     index: true,

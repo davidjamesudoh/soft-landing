@@ -34,31 +34,36 @@ export default function OurStory({
   onMusicReady?: () => void;
 }) {
   const sectionRef = useRef<HTMLElement>(null);
+  const stickyWrapRef = useRef<HTMLDivElement>(null);
   // tunnelRef is the overflow-hidden 3D container — separate from text
   const tunnelRef = useRef<HTMLDivElement>(null);
   const percentRef = useRef<HTMLSpanElement>(null);
   const storyTextRef = useRef<HTMLParagraphElement>(null);
   const softRef = useRef<HTMLSpanElement>(null);
   const landingRef = useRef<HTMLSpanElement>(null);
+  const bottomBarRef = useRef<HTMLDivElement>(null);
   const setNavColor = useStableNavColor();
 
   useEffect(() => {
     const totalLayerCount = CONFIG.totalImages;
     const visibleDepth = 2 * CONFIG.layerGap;
-    const exitPoint = 1500;
+    const exitPoint = 500;
 
     const initialScroll = -CONFIG.layerGap;
     const maxScroll = (totalLayerCount - 1) * CONFIG.layerGap + exitPoint;
 
     const tunnelEl = tunnelRef.current!;
     const sectionEl = sectionRef.current!;
+    const stickyWrapEl = stickyWrapRef.current!;
+    const bottomBarEl = bottomBarRef.current!;
 
     const sectionScrollDistance =
       (maxScroll - initialScroll) / CONFIG.scrollSpeed;
     sectionEl.style.height = `${sectionScrollDistance + window.innerHeight}px`;
 
-    const sectionAbsoluteTop =
-      sectionEl.getBoundingClientRect().top + window.scrollY;
+    // Read fresh on every scroll event using offsetTop so we're never working
+    // with a stale value captured before the hero section set its height.
+    const getSectionTop = () => sectionEl.offsetTop;
 
     // Build tunnel DOM
     const tunnelWrapEl = document.createElement("div");
@@ -157,17 +162,52 @@ export default function OurStory({
     let currentScroll = initialScroll;
     let activeImageNumber = -1;
 
-    const handleScroll = () => {
-      const scrolled = window.scrollY - sectionAbsoluteTop;
+    const pin = (state: "before" | "pinned" | "after" | "after-out") => {
+      if (stickyWrapEl.dataset.pin === state) return;
+      stickyWrapEl.dataset.pin = state;
 
-      if (scrolled <= 0) {
-        targetScroll = initialScroll;
+      // Height never changes — toggling it causes iOS to recalculate scroll geometry
+      // and makes the address bar jump. Only position and bottomBar change.
+      if (state === "pinned") {
+        stickyWrapEl.style.position = "sticky";
+        stickyWrapEl.style.top = "0";
+        bottomBarEl.style.bottom = "17rem";
+      } else if (state === "before" || state === "after-out") {
+        // Not yet in view or completely past — relative so address bar is unaffected
+        stickyWrapEl.style.position = "relative";
+        stickyWrapEl.style.top = "0";
+        bottomBarEl.style.bottom = "2.5rem";
       } else {
+        // "after" — still transitioning out, keep sticky to avoid gap with Schedule
+        stickyWrapEl.style.position = "sticky";
+        stickyWrapEl.style.top = "0";
+        bottomBarEl.style.bottom = "2.5rem";
+      }
+      void stickyWrapEl.offsetHeight;
+    };
+
+    const handleScroll = () => {
+      const scrolled = window.scrollY - getSectionTop();
+
+      if (scrolled <= 2) {
+        pin("before");
+        targetScroll = initialScroll;
+      } else if (scrolled <= sectionScrollDistance - 100) {
+        pin("pinned");
         targetScroll = Math.min(
           maxScroll,
           initialScroll + scrolled * CONFIG.scrollSpeed,
         );
-        setNavColor(scrolled <= sectionScrollDistance ? "white" : "black");
+        setNavColor("white");
+      } else if (scrolled <= sectionScrollDistance + window.innerHeight) {
+        // Still in view — keep sticky so no gap appears above Schedule
+        pin("after");
+        targetScroll = maxScroll;
+        setNavColor("black");
+      } else {
+        // Section completely off-screen — safe to go relative
+        pin("after-out");
+        setNavColor("black");
       }
 
       if (scrolled > -window.innerHeight * 0.6) {
@@ -238,6 +278,8 @@ export default function OurStory({
     return () => {
       window.removeEventListener("scroll", handleScroll);
       gsap.ticker.remove(tickerCallback);
+      document.body.style.backgroundColor = "";
+      delete stickyWrapEl.dataset.pin;
       if (tunnelEl.contains(tunnelWrapEl)) {
         tunnelEl.removeChild(tunnelWrapEl);
       }
@@ -245,19 +287,22 @@ export default function OurStory({
   }, [setNavColor]);
 
   return (
-    <section id="our-story" ref={sectionRef} className="">
-      {/* Outer sticky — no overflow-hidden so title descenders render cleanly */}
-      <div className="sticky top-0 h-dvh w-full bg-[#D9788B]">
+    <section id="our-story" ref={sectionRef} className="relative">
+      {/* Pinned layer — JS drives position: relative → sticky → relative */}
+      <div
+        ref={stickyWrapRef}
+        className="relative inset-0 h-[130vh] w-full bg-[#D9788B]"
+      >
         {/* Tunnel container — isolated overflow-hidden for 3D layers */}
         <div
           ref={tunnelRef}
-          className="absolute inset-0 overflow-hidden perspective-[1000px]"
+          className="absolute inset-0 overflow-clip perspective-[1000px]"
         />
 
         {/* Text content — rendered above tunnel, not clipped */}
-        <div className="relative z-20 container mx-auto text-white px-4 pt-24 md:pt-[110px] pb-8 md:pb-12">
-          <div className="text-white px-4 pt-24 md:pt-[110px] pb-8 md:pb-12">
-            <h2 className="font-ed-lavonia text-5xl md:text-7xl mb-11 text-center overflow-visible">
+        <div className="relative z-20 container mx-auto text-white px-4 pt-24 md:pt-[110px] pb-8 md:pb-12 overflow-visible">
+          <div className="text-white px-4 pt-24 md:pt-[110px] pb-8 md:pb-12 overflow-visible">
+            <h2 className="font-ed-lavonia text-5xl md:text-7xl mb-11 text-center overflow-visible leading-[1.4]">
               <span
                 ref={softRef}
                 className="inline-block overflow-visible"
@@ -286,7 +331,10 @@ export default function OurStory({
         </div>
 
         {/* Bottom bar: [music slot] [skip center] [scroll right] */}
-        <div className="absolute z-20 bottom-[2.5rem] left-0 right-0 flex items-center justify-between px-[5%]">
+        <div
+          ref={bottomBarRef}
+          className="absolute z-20 bottom-[17rem] left-0 right-0 flex items-center justify-between px-[5%]"
+        >
           {/* Left slot — music controls render here via fixed positioning */}
           <div className="w-[80px]" />
 

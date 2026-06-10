@@ -8,6 +8,7 @@ import Registry from "@/components/home/registry";
 import Rsvp from "@/components/home/rsvp";
 import Schedule from "@/components/home/schedule";
 import MusicPlayer from "@/components/musicPlayer";
+import PageLoader from "@/components/pageLoader";
 
 export default function HomePage() {
   const [heroComplete, setHeroComplete] = useState(false);
@@ -20,6 +21,7 @@ export default function HomePage() {
 
   return (
     <main className="relative">
+      <PageLoader />
       <Hero />
       <OurStory />
       <Schedule />
@@ -29,7 +31,7 @@ export default function HomePage() {
       <FAQ />
 
       {/* Music player — fixed bottom-left, appears when hero image finishes scaling */}
-      {/* <div className="fixed bottom-[2.5rem] left-[5%] z-50">
+      {/* <div className="fixed left-[5%] right-[5%] z-50" style={{ bottom: "calc(2.5rem + env(safe-area-inset-bottom, 0px))" }}>
         <MusicPlayer show={heroComplete} />
       </div> */}
     </main>
