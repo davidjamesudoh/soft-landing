@@ -13,7 +13,7 @@ function Input({ className, type, label, error, note, ...props }: InputProps) {
   return (
     <div className="">
       {label && (
-        <label className="block text-black text-base mb-1.5 font-new-kansas">
+        <label className="block text-black text-base mb-0.5 font-new-kansas">
           {label}
         </label>
       )}
@@ -22,7 +22,7 @@ function Input({ className, type, label, error, note, ...props }: InputProps) {
         data-slot="input"
         aria-invalid={!!error}
         className={cn(
-          "w-full px-4 py-2 h-[49px] border border-brand-pink rounded-full bg-white pb-1 outline-none text-sm placeholder:text-gray-300",
+          "w-full px-3 py-1 h-[42px] border border-brand-pink rounded-full bg-white pb-1 outline-none text-base placeholder:text-gray-300",
           "focus:outline-none focus:border-brand-pink focus:border-2",
           className,
         )}

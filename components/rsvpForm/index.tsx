@@ -28,23 +28,23 @@ export default function RsvpForm({ onSuccess }: { onSuccess?: () => void }) {
           src="/images/love.png"
           width={512}
           height={462}
-          className="object-contain absolute inset-0 mx-auto w-[70px]"
+          className="object-contain absolute inset-0 -top-2 mx-auto w-[70px]"
           alt=""
         />
         <Image
           src="/images/rsvp-text.png"
           width={683}
           height={202}
-          className="object-contain w-[180px] mx-auto relative z-10"
+          className="object-contain w-[150px] mx-auto relative z-10"
           alt=""
         />
       </div>
 
-      <h2 className="font-new-kansas text-center text-2xl md:text-4xl mb-6">
+      <h2 className="font-new-kansas text-center text-xl sm:text-2xl md:text-4xl mb-4 max-w-[250px] mx-auto">
         Are you gonna be there when we say {`"I do"`}?
       </h2>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Name */}
         <Input
           label="Full name"
@@ -75,10 +75,10 @@ export default function RsvpForm({ onSuccess }: { onSuccess?: () => void }) {
 
         {/* Closest to */}
         <div className="">
-          <label className="block text-black text-base mb-1.5">
+          <label className="block text-black text-base mb-0.5">
             Will you be attending?
           </label>
-          <div className="space-y-3 mt-4">
+          <div className="space-y-2 mt-2">
             {attendingOptions.map((option) => (
               <label
                 key={option}
@@ -118,13 +118,11 @@ export default function RsvpForm({ onSuccess }: { onSuccess?: () => void }) {
           )}
         </div>
 
-        {error && (
-          <p className="text-red-500 text-sm text-center">{error}</p>
-        )}
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
         <div className="w-fit mx-auto">
           <button
-            className="text-base md:text-lg font-medium uppercase border-3 border-brand-pink rounded-full px-5 py-2 mt-10"
+            className="text-base md:text-lg font-medium uppercase border-3 border-brand-pink rounded-full px-5 py-2 mt-7"
             type="submit"
             disabled={loading}
           >

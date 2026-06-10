@@ -44,8 +44,8 @@ export default function Rsvp() {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: section,
-        start: "top 55%",
-        end: "top 20%",
+        start: "top 70%",
+        end: "top 12%",
         scrub: 2,
       },
     });
@@ -124,7 +124,7 @@ export default function Rsvp() {
                     <Dialog.Content className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10">
                       <Dialog.Title className="sr-only">RSVP Form</Dialog.Title>
                       <div className="relative w-full max-w-2xl">
-                        <Dialog.Close className="absolute -top-3 right-0 z-10 w-8 h-8 rounded-full bg-brand-pink text-white flex items-center justify-center text-lg leading-none">
+                        <Dialog.Close className="absolute top-3 right-3 z-10 w-10 h-10 rounded-full bg-brand-pink text-white flex items-center justify-center text-4xl leading-none">
                           ×
                         </Dialog.Close>
                         <RsvpForm onSuccess={handleSuccess} />
