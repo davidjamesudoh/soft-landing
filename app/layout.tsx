@@ -57,16 +57,9 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://softlanding.fyi",
     title: "Tomini and David",
-    description: "Tomini and David",
+    description: "RSVP for Tomini and David's wedding",
     siteName: "Tomini and David",
-    images: [
-      {
-        url: "https://softlanding.fyi/og-image.jpeg",
-        width: 953,
-        height: 500,
-        alt: "Tomini and David",
-      },
-    ],
+    images: ["https://softlanding.fyi/og-image.jpeg"],
   },
   twitter: {
     card: "summary_large_image",
