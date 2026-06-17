@@ -59,13 +59,13 @@ export const metadata: Metadata = {
     title: "Tomini and David",
     description: "RSVP for Tomini and David's wedding",
     siteName: "Tomini and David",
-    images: ["https://softlanding.fyi/og-image.jpeg"],
+    images: ["/images/og-image.jpeg"],
   },
   twitter: {
     card: "summary_large_image",
     title: "Tomini and David",
     description: "Tomini and David",
-    images: ["https://softlanding.fyi/og-image.jpeg"],
+    images: ["/images/og-image.jpeg"],
   },
   robots: {
     index: true,
