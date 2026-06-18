@@ -19,7 +19,7 @@ export function useRsvp(onSuccess?: () => void) {
       const result = await res.json();
 
       if (result?.duplicate) {
-        setError("Looks like you've already RSVP'd with this email or phone number.");
+        setError("Looks like you've already RSVP'd with this phone number.");
         return;
       }
 

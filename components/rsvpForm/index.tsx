@@ -40,7 +40,7 @@ export default function RsvpForm({ onSuccess }: { onSuccess?: () => void }) {
         />
       </div>
 
-      <h2 className="font-new-kansas text-center text-xl sm:text-2xl md:text-4xl mb-4 max-w-[250px] mx-auto">
+      <h2 className="font-new-kansas text-center text-xl sm:text-2xl md:text-4xl mb-4 max-w-[250px] md:max-w-[500px] mx-auto">
         Are you gonna be there when we say {`"I do"`}?
       </h2>
 
@@ -66,7 +66,7 @@ export default function RsvpForm({ onSuccess }: { onSuccess?: () => void }) {
 
         {/* Email */}
         <Input
-          label="Email address"
+          label="Email address (optional)"
           {...register("email")}
           type="email"
           placeholder="your@email.com"
