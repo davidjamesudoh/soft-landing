@@ -8,7 +8,12 @@ export const attendingOptions = [
 export const rsvpFormSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
   phone: z.string().min(7, "Please enter a valid phone number"),
-  email: z.email("Please enter a valid email"),
+  email: z
+    .string()
+    .optional()
+    .refine((val) => !val || z.email().safeParse(val).success, {
+      message: "Please enter a valid email",
+    }),
   attending: z.string().min(1, "Please select an option"),
 });
 

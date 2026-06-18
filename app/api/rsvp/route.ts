@@ -13,10 +13,8 @@ export async function POST(req: NextRequest) {
       "Content-Type": "application/json",
     };
 
-    // Check for duplicate email or phone
-    const formula = encodeURIComponent(
-      `OR({Email address}="${data.email}",{Phone number}="${data.phone}")`,
-    );
+    // Check for duplicate phone
+    const formula = encodeURIComponent(`{Phone number}="${data.phone}"`);
     const checkRes = await fetch(`${tableUrl}?filterByFormula=${formula}`, {
       headers,
     });
@@ -39,7 +37,7 @@ export async function POST(req: NextRequest) {
             fields: {
               Name: data.fullName,
               "Phone number": data.phone,
-              "Email address": data.email,
+              ...(data.email ? { "Email address": data.email } : {}),
               Attending: data.attending,
               "Submitted At": new Date().toISOString(),
             },

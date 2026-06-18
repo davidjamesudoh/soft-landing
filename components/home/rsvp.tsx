@@ -11,6 +11,13 @@ import { smoothScrollTo } from "@/components/smoothScroller";
 const RSVP_KEY = "rsvp_submitted";
 gsap.registerPlugin(ScrollTrigger);
 
+// Runs once per page load (module re-evaluates on full reload, not on
+// client-side navigation), so the thank-you state resets on reload but
+// survives within the same session.
+if (typeof window !== "undefined") {
+  localStorage.removeItem(RSVP_KEY);
+}
+
 function useRsvpd() {
   return useSyncExternalStore(
     (callback) => {
