@@ -30,7 +30,7 @@ function useRsvpd() {
 }
 
 export default function Rsvp() {
-  const hasRsvpd = useRsvpd();
+  const hasRsvpd = true; //useRsvpd();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const innerRef = useRef<HTMLDivElement | null>(null);
