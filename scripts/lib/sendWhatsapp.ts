@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import qrcodeTerminal from "qrcode-terminal";
 import { Client, LocalAuth, Message, MessageAck, MessageMedia } from "whatsapp-web.js";
@@ -82,18 +83,32 @@ function getClient(): Client {
 // return undefined instead of a real message (see sendCard's retry loop).
 const READY_SETTLE_MS = 8000;
 
-/** Initializes the client and resolves once it's ready to send messages. */
+/**
+ * Initializes the client and resolves once it's ready to send messages.
+ *
+ * IMPORTANT: c.initialize() must be awaited/caught here. It returns a
+ * Promise, and calling it fire-and-forget (as this used to) means any
+ * rejection — e.g. Puppeteer failing to launch because a stale browser
+ * lock is still held — becomes an unhandled promise rejection that
+ * crashes the entire Node process, bypassing every try/catch in
+ * jobRunner.ts entirely. That happened for real: a reconnect after a
+ * detached-frame error hit exactly this and took the whole trigger
+ * server down mid-run.
+ */
 export function waitForReady(): Promise<void> {
   const c = getClient();
   if (!readyPromise) {
-    readyPromise = new Promise((resolve) => {
+    readyPromise = new Promise((resolve, reject) => {
       c.on("ready", async () => {
         log(PHASE, "Client ready. Giving WhatsApp Web a few seconds to finish syncing...");
         await new Promise((r) => setTimeout(r, READY_SETTLE_MS));
         log(PHASE, "Ready to send.");
         resolve();
       });
-      c.initialize();
+      c.initialize().catch((err) => {
+        readyPromise = null; // don't leave a rejected promise cached — allow a later retry to start clean
+        reject(err);
+      });
     });
   }
   return readyPromise;
@@ -261,6 +276,18 @@ export function isRecoverableBrowserError(err: unknown): boolean {
   );
 }
 
+function clearStaleBrowserLock(): void {
+  const lockPath = path.resolve(__dirname, "..", "..", ".wwebjs_auth", "session", "SingletonLock");
+  try {
+    if (fs.existsSync(lockPath)) {
+      fs.unlinkSync(lockPath);
+      warn(PHASE, "Removed a stale browser profile lock before relaunching.");
+    }
+  } catch {
+    // Best effort — if this fails, the launch attempt below will surface a clear error anyway.
+  }
+}
+
 /**
  * Tears down and re-initializes the client after a browser-layer error.
  * Reuses the persisted session (.wwebjs_auth), so this does NOT require
@@ -276,6 +303,12 @@ export async function reconnectClient(): Promise<void> {
   if (oldClient) {
     await oldClient.destroy().catch(() => {});
   }
+  // destroy() only closes the browser if it still reports itself as
+  // connected — after the kind of crash that triggers a reconnect, it
+  // often doesn't, so the old Chrome profile lock is left behind and the
+  // next launch fails with "browser is already running". Clear it
+  // defensively; harmless no-op if nothing's actually there.
+  clearStaleBrowserLock();
   await waitForReady();
   log(PHASE, "WhatsApp client reconnected.");
 }
