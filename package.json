@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "send-invites": "tsx scripts/send-invites.ts",
+    "trigger-server": "tsx scripts/server.ts"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
@@ -19,23 +21,36 @@
     "@radix-ui/react-radio-group": "^1.3.8",
     "@radix-ui/react-tabs": "^1.1.13",
     "airtable": "^0.12.2",
+    "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
+    "dotenv": "^17.4.2",
     "gsap": "^3.15.0",
+    "html5-qrcode": "^2.3.8",
     "lenis": "^1.3.17",
+    "libphonenumber-js": "^1.13.12",
     "lucide-react": "^1.17.0",
     "next": "16.0.10",
+    "opentype.js": "^2.0.0",
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-fast-marquee": "^1.6.5",
     "react-hook-form": "^7.68.0",
     "react-hot-toast": "^2.6.0",
+    "sharp": "^0.35.4",
     "styled-components": "^6.2.0",
     "tailwind-merge": "^3.6.0",
+    "whatsapp-web.js": "^1.34.7",
     "zod": "^4.2.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
+    "@types/opentype.js": "^1.3.10",
+    "@types/qrcode": "^1.5.6",
+    "@types/qrcode-terminal": "^0.12.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/youtube": "^0.3.0",
@@ -43,6 +58,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.0.2",
     "tailwindcss": "^4",
+    "tsx": "^4.23.13",
     "typescript": "^5"
   }
 }
