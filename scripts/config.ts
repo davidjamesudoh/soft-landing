@@ -82,6 +82,11 @@ export const TABLE_NUMBER_FIELD =
   process.env.TABLE_NUMBER_FIELD || "Table Number";
 export const AIRTABLE_VIEW_NAME = process.env.AIRTABLE_VIEW_NAME || undefined;
 
+// Long-text field for outcomes that don't fit "Not yet"/"Yes" — e.g. a
+// send that couldn't be confirmed either way. Requires a "Notes" (long
+// text) field on the Airtable table.
+export const SEND_NOTES_FIELD = process.env.SEND_NOTES_FIELD || "Notes";
+
 export const MIN_DELAY_MS = Number(process.env.MIN_DELAY_MS || 3000);
 export const MAX_DELAY_MS = Number(process.env.MAX_DELAY_MS || 8000);
 

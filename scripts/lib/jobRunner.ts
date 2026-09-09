@@ -10,6 +10,7 @@ import {
   THANK_YOU_SENT_FIELD,
 } from "../config";
 import {
+  appendSendNote,
   fetchGuestsByIds,
   fetchGuestsPendingCard,
   fetchGuestsPendingField,
@@ -21,6 +22,7 @@ import { generateCard } from "./generateCard";
 import { log } from "./log";
 import { normalizePhone } from "./phone";
 import {
+  InconclusiveSendError,
   isRecoverableBrowserError,
   reconnectClient,
   sendCard,
@@ -44,6 +46,8 @@ export interface JobStatus {
   sent: number;
   skipped: number;
   failed: number;
+  /** Sent-but-couldn't-verify — deliberately NOT counted as failed. See InconclusiveSendError. */
+  unconfirmed: number;
   currentGuest: string | null;
   startedAt: string | null;
   finishedAt: string | null;
@@ -58,6 +62,7 @@ let status: JobStatus = {
   sent: 0,
   skipped: 0,
   failed: 0,
+  unconfirmed: 0,
   currentGuest: null,
   startedAt: null,
   finishedAt: null,
@@ -77,6 +82,20 @@ function actionLabel(action: JobAction): string {
   if (action.type === "card") return "Access Card";
   if (action.type === "reminder") return `Reminder (${action.stage})`;
   return "Thank You";
+}
+
+/** Reminder/thank-you tracking field name — not used for "card", which has its own markCardSent(). */
+function trackingField(action: { type: "reminder"; stage: string } | { type: "thankyou" }): string {
+  if (action.type === "reminder") {
+    const stage = REMINDER_STAGES.find((s) => s.key === action.stage);
+    if (!stage) throw new Error(`Unknown reminder stage "${action.stage}"`);
+    return stage.fieldName;
+  }
+  return THANK_YOU_SENT_FIELD;
+}
+
+function markActionSent(guest: Guest, action: JobAction): Promise<void> {
+  return action.type === "card" ? markCardSent(guest.id) : markFieldSent(guest.id, trackingField(action));
 }
 
 /**
@@ -125,6 +144,7 @@ export async function runJob(
     sent: 0,
     skipped: 0,
     failed: 0,
+    unconfirmed: 0,
     currentGuest: null,
     startedAt: new Date().toISOString(),
     finishedAt: null,
@@ -157,30 +177,62 @@ async function processGuests(guests: Guest[], action: JobAction): Promise<void> 
     } else {
       try {
         await sendOne(guest, phone.e164, action);
+        await markActionSent(guest, action);
         status.sent++;
         pushLog(`✅ Sent (${actionLabel(action)}) to ${guest.name}`);
       } catch (err) {
-        status.failed++;
-        pushLog(`❌ Failed (${actionLabel(action)}) for ${guest.name}: ${err instanceof Error ? err.message : err}`);
-
-        if (isRecoverableBrowserError(err)) {
-          // The browser session broke mid-send — without reconnecting,
-          // every remaining guest in this batch would fail the same way.
-          // We do NOT retry this guest automatically: the error came from
-          // the Puppeteer/connection layer (not the "ambiguous result"
-          // path sendMessageOnce already verifies against chat history),
-          // so we can't be sure whether it actually sent before breaking.
-          // Safe path: mark this one failed, reconnect, keep going —
-          // the admin can re-select just this guest afterward.
-          pushLog(`⚠️  Browser-level error detected — reconnecting WhatsApp before continuing...`);
+        if (err instanceof InconclusiveSendError) {
+          // sendMessageOnce's verification step couldn't confirm this one
+          // way or the other — but every real-world case observed so far
+          // (repeated manual checks against actual WhatsApp) has turned
+          // out to be a genuine send, so we mark it sent rather than
+          // making the admin manually fix every ambiguous case. Still
+          // tracked as a distinct "unconfirmed" count (not silently
+          // merged into normal sends) and noted on the record, in case
+          // this pattern is ever wrong for a particular guest.
+          status.unconfirmed++;
+          pushLog(
+            `⚠️  Unconfirmed (${actionLabel(action)}) for ${guest.name}: ${err.message} ` +
+              `— marking as sent anyway (this verification failure has consistently meant it did send).`,
+          );
           try {
-            await reconnectClient();
-          } catch (reconnectErr) {
+            await markActionSent(guest, action);
+          } catch (markErr) {
             pushLog(
-              `❌ Reconnect failed: ${reconnectErr instanceof Error ? reconnectErr.message : reconnectErr}. ` +
-                `Stopping this run — restart the trigger server.`,
+              `❌ Also failed to mark ${guest.name} as sent: ${markErr instanceof Error ? markErr.message : markErr}`,
             );
-            break;
+          }
+          try {
+            await appendSendNote(guest.id, `${actionLabel(action)}: sent (unconfirmed)`);
+          } catch (noteErr) {
+            pushLog(
+              `❌ Also failed to write the Airtable note for ${guest.name}: ` +
+                `${noteErr instanceof Error ? noteErr.message : noteErr}`,
+            );
+          }
+        } else {
+          status.failed++;
+          pushLog(`❌ Failed (${actionLabel(action)}) for ${guest.name}: ${err instanceof Error ? err.message : err}`);
+
+          if (isRecoverableBrowserError(err)) {
+            // The browser session broke mid-send — without reconnecting,
+            // every remaining guest in this batch would fail the same way.
+            // We do NOT retry this guest automatically: the error came from
+            // the Puppeteer/connection layer (not the "ambiguous result"
+            // path sendMessageOnce already verifies against chat history),
+            // so we can't be sure whether it actually sent before breaking.
+            // Safe path: mark this one failed, reconnect, keep going —
+            // the admin can re-select just this guest afterward.
+            pushLog(`⚠️  Browser-level error detected — reconnecting WhatsApp before continuing...`);
+            try {
+              await reconnectClient();
+            } catch (reconnectErr) {
+              pushLog(
+                `❌ Reconnect failed: ${reconnectErr instanceof Error ? reconnectErr.message : reconnectErr}. ` +
+                  `Stopping this run — restart the trigger server.`,
+              );
+              break;
+            }
           }
         }
       }
@@ -193,12 +245,12 @@ async function processGuests(guests: Guest[], action: JobAction): Promise<void> 
   }
 }
 
+/** Sends only — does NOT mark Airtable. Marking is shared between the confirmed and unconfirmed paths in processGuests. */
 async function sendOne(guest: Guest, e164Phone: string, action: JobAction): Promise<void> {
   if (action.type === "card") {
     const outputPath = path.join(OUTPUT_DIR, `${slugify(guest.name)}-${guest.id}.png`);
     await generateCard(guest, outputPath);
     await sendCard(e164Phone, outputPath, CAPTION(guest.name));
-    await markCardSent(guest.id);
     return;
   }
 
@@ -207,10 +259,8 @@ async function sendOne(guest: Guest, e164Phone: string, action: JobAction): Prom
     if (!stage) throw new Error(`Unknown reminder stage "${action.stage}"`);
     const text = REMINDER_MESSAGES[stage.key](guest.name);
     await sendText(e164Phone, text);
-    await markFieldSent(guest.id, stage.fieldName);
     return;
   }
 
   await sendText(e164Phone, THANK_YOU_MESSAGE(guest.name));
-  await markFieldSent(guest.id, THANK_YOU_SENT_FIELD);
 }

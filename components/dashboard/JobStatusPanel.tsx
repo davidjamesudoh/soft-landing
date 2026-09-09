@@ -10,6 +10,7 @@ interface JobStatus {
   sent: number;
   skipped: number;
   failed: number;
+  unconfirmed: number;
   currentGuest: string | null;
   recentLog: string[];
 }
@@ -77,13 +78,16 @@ export default function JobStatusPanel({
         {status.processed}/{status.total} processed
         {status.currentGuest ? ` — currently: ${status.currentGuest}` : ""}
         {" · "}
-        ✅ {status.sent} &nbsp; ⚠️ {status.skipped} &nbsp; ❌ {status.failed}
+        ✅ {status.sent} &nbsp; ⚠️ {status.skipped} skipped &nbsp; ❓ {status.unconfirmed} unconfirmed &nbsp; ❌ {status.failed}
       </div>
       {status.recentLog.length > 0 && (
         <div
           style={{
             maxHeight: 120,
             overflowY: "auto",
+            overflowX: "hidden",
+            width: "100%",
+            boxSizing: "border-box",
             fontFamily: "monospace",
             fontSize: 11,
             color: "#888",
@@ -93,7 +97,17 @@ export default function JobStatusPanel({
           }}
         >
           {status.recentLog.slice(-10).map((line, i) => (
-            <div key={i}>{line}</div>
+            <div
+              key={i}
+              style={{
+                whiteSpace: "pre-wrap",
+                overflowWrap: "break-word",
+                wordBreak: "break-word",
+                marginBottom: 4,
+              }}
+            >
+              {line}
+            </div>
           ))}
         </div>
       )}

@@ -7,6 +7,7 @@ import {
   CARD_SENT_YES_VALUE,
   NAME_FIELD,
   PHONE_FIELD,
+  SEND_NOTES_FIELD,
   TABLE_NUMBER_FIELD,
 } from "../config";
 import { log, warn } from "./log";
@@ -132,4 +133,23 @@ export async function markFieldSent(recordId: string, fieldName: string): Promis
   const table = getTable();
   log(PHASE, `Marking "${fieldName}" = "${CARD_SENT_YES_VALUE}" for record ${recordId}...`);
   await table.update(recordId, { [fieldName]: CARD_SENT_YES_VALUE });
+}
+
+/**
+ * Appends a timestamped note to the guest's SEND_NOTES_FIELD (a long-text
+ * field) rather than replacing it — used for outcomes that don't fit a
+ * clean "Not yet"/"Yes" (e.g. a send that couldn't be confirmed either
+ * way), so that state is visible directly on the record instead of only
+ * living in a log that resets on server restart.
+ */
+export async function appendSendNote(recordId: string, note: string): Promise<void> {
+  const table = getTable();
+  const record = await table.find(recordId);
+  const existing = (record.get(SEND_NOTES_FIELD) as string) || "";
+  // Compact "YYYY-MM-DD HH:mm" rather than a full ISO timestamp — keeps notes short.
+  const timestamp = new Date().toISOString().slice(0, 16).replace("T", " ");
+  const line = `[${timestamp}] ${note}`;
+  const combined = existing ? `${existing}\n${line}` : line;
+  log(PHASE, `Appending note for record ${recordId}...`);
+  await table.update(recordId, { [SEND_NOTES_FIELD]: combined });
 }

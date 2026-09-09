@@ -7,6 +7,20 @@ import { normalizePhone } from "./phone";
 
 const PHASE = "WhatsApp";
 
+/**
+ * Thrown when we genuinely cannot tell whether a message sent — as
+ * opposed to a normal Error, which means we're confident it did NOT send.
+ * Callers (jobRunner) use this distinction to record an honest "unknown,
+ * check manually" state in Airtable rather than leaving it looking
+ * identical to "never attempted."
+ */
+export class InconclusiveSendError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "InconclusiveSendError";
+  }
+}
+
 let client: Client | null = null;
 let readyPromise: Promise<void> | null = null;
 
@@ -141,31 +155,46 @@ async function sendMessageOnce(
   );
   await new Promise((r) => setTimeout(r, 3000));
 
-  try {
-    const chat = await c.getChatById(chatId);
-    const recent = await chat.fetchMessages({ limit: 1, fromMe: true });
+  // The chat-history check itself can flake (WhatsApp Web's own minified
+  // internals occasionally throw near-empty errors from page.evaluate).
+  // Retry ONLY that failure mode a few times — if the check instead
+  // succeeds and confidently finds nothing recent, that's a conclusive
+  // "did not send" and we act on it immediately, no retry needed.
+  const VERIFY_ATTEMPTS = 3;
+  let lastVerifyError: unknown;
+
+  for (let attempt = 1; attempt <= VERIFY_ATTEMPTS; attempt++) {
+    let chat: Awaited<ReturnType<Client["getChatById"]>>;
+    let recent: Message[];
+    try {
+      chat = await c.getChatById(chatId);
+      recent = await chat.fetchMessages({ limit: 1, fromMe: true });
+    } catch (err) {
+      lastVerifyError = err;
+      if (attempt < VERIFY_ATTEMPTS) {
+        warn(PHASE, `Chat-history check failed (attempt ${attempt}/${VERIFY_ATTEMPTS}), retrying in 3s...`);
+        await new Promise((r) => setTimeout(r, 3000));
+      }
+      continue;
+    }
+
     const last = recent[0];
     const sentJustNow = last && Date.now() / 1000 - last.timestamp < 30;
     if (sentJustNow) {
       log(PHASE, "Confirmed via chat history: the message did go out despite no direct confirmation.");
       return last;
     }
-  } catch (err) {
-    // WhatsApp Web's own internal (minified) code sometimes throws a
-    // near-empty value here (e.g. a bare single character) instead of a
-    // real Error — that's not something we can parse or trust either way.
-    // Do NOT treat this as "definitely not sent": we genuinely don't know.
     throw new Error(
-      `Couldn't verify whether the message actually sent — WhatsApp Web's chat-history check itself ` +
-        `failed (${err instanceof Error ? err.message : String(err)}). This is inconclusive, not a ` +
-        `confirmed failure: check this guest's WhatsApp chat manually before deciding whether to ` +
-        `re-run — resending if it already went out would duplicate it.`,
+      "WhatsApp Web didn't confirm the send, and no matching recent message was found in the chat — " +
+        "it most likely did NOT go out. Safe to re-run for this guest.",
     );
   }
 
-  throw new Error(
-    "WhatsApp Web didn't confirm the send, and no matching recent message was found in the chat — " +
-      "it most likely did NOT go out. Safe to re-run for this guest.",
+  throw new InconclusiveSendError(
+    `Couldn't verify whether the message actually sent — WhatsApp Web's chat-history check itself ` +
+      `kept failing after ${VERIFY_ATTEMPTS} attempts (${lastVerifyError instanceof Error ? lastVerifyError.message : String(lastVerifyError)}). ` +
+      `This is inconclusive, not a confirmed failure: check this guest's WhatsApp chat manually before ` +
+      `deciding whether to re-run — resending if it already went out would duplicate it.`,
   );
 }
 
