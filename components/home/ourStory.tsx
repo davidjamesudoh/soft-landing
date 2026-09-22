@@ -323,9 +323,10 @@ export default function OurStory({
               className="text-sm md:text-base max-w-[310px] md:max-w-[400px] px-4 mx-auto text-center"
             >
               {/* {storyText[0]} */}
-              We arrived too late to be each other&apos;s first love, but we
-              arrived perfectly on time to be the love of each other&apos;s
-              lives.
+              Oh, to love and be loved.
+              <br />
+              We started as friends, became best friends, and somewhere in
+              between, became each other’s favourite person.
             </p>
           </div>
         </div>

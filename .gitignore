@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +40,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# WhatsApp invite script (scripts/send-invites.ts)
+/output/
+/.wwebjs_auth/
+/.wwebjs_cache/
+# card-template.png is real production art (tracked); card-reference.png
+# was only a one-off mockup used to measure layout positions.
+/scripts/assets/card-reference.png
