@@ -43,7 +43,13 @@ export function normalizePhone(raw: string): NormalizedPhone | null {
 
   for (const { input, country } of candidates) {
     const parsed = parsePhoneNumberFromString(input, country);
-    if (parsed?.isValid()) {
+    // isPossible() (length/shape only) rather than isValid() (also checks
+    // real assigned-exchange rules) — a guest-entered number like
+    // "(814) 064-3185" is well-formed but has an exchange code libphonenumber-js
+    // considers unassigned; rejecting it here means that guest silently
+    // never gets invited. WhatsApp's own getNumberId() check later is the
+    // real backstop against genuinely nonexistent numbers.
+    if (parsed?.isPossible()) {
       const digits = parsed.number.replace("+", "");
       return { e164: parsed.number, whatsappId: `${digits}@c.us` };
     }

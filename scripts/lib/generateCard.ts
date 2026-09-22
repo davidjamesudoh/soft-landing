@@ -15,10 +15,12 @@ import {
   QR_LIGHT_COLOR,
   QR_POSITION,
   QR_SIZE,
+  SPECIAL_TABLE_LABELS,
   TABLE_BADGE_COLOR,
   TABLE_BADGE_HEIGHT,
   TABLE_BADGE_WIDTH,
   TABLE_FONT_SIZE,
+  TABLE_MIN_FONT_SIZE,
   TABLE_POSITION,
   TABLE_TEXT_COLOR,
 } from "../config";
@@ -69,6 +71,23 @@ function fitNameFontSize(text: string, maxWidth: number): number {
   return Math.max(NAME_MIN_FONT_SIZE, fitted);
 }
 
+/** Same fitting approach as fitNameFontSize, but for the table badge (fixed width, doesn't wrap). */
+function fitTableFontSize(text: string, maxWidth: number): number {
+  const glyphWidthAtBase = measureTextWidth(text, TABLE_FONT_SIZE);
+  const extraSpacing = Math.max(0, text.length - 1) * 1; // matches the SVG's letter-spacing="1"
+  if (glyphWidthAtBase + extraSpacing <= maxWidth) return TABLE_FONT_SIZE;
+
+  const widthPerSizeUnit = glyphWidthAtBase / TABLE_FONT_SIZE;
+  const fitted = Math.floor((maxWidth - extraSpacing) / widthPerSizeUnit);
+  if (fitted < TABLE_MIN_FONT_SIZE) {
+    warn(
+      "Card",
+      `Table label "${text}" still doesn't fully fit at the minimum font size (${TABLE_MIN_FONT_SIZE}px) — it may overflow the badge.`,
+    );
+  }
+  return Math.max(TABLE_MIN_FONT_SIZE, fitted);
+}
+
 function escapeXml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -117,11 +136,13 @@ export async function generateCard(guest: Guest, outputPath: string): Promise<vo
     </svg>
   `;
 
+  const specialLabel = guest.tableNumber ? SPECIAL_TABLE_LABELS[guest.tableNumber] : undefined;
   const tableNumberDisplay =
     guest.tableNumber && /^\d+$/.test(guest.tableNumber)
       ? guest.tableNumber.padStart(2, "0")
       : guest.tableNumber || "TBD";
-  const tableLabel = `TABLE ${tableNumberDisplay}`;
+  const tableLabel = specialLabel ?? `TABLE ${tableNumberDisplay}`;
+  const tableFontSize = fitTableFontSize(tableLabel, TABLE_BADGE_WIDTH - 40);
   const badgeLeft = (TABLE_POSITION.width - TABLE_BADGE_WIDTH) / 2;
   const badgeTop = (TABLE_POSITION.height - TABLE_BADGE_HEIGHT) / 2;
   const tableSvg = `
@@ -131,7 +152,7 @@ export async function generateCard(guest: Guest, outputPath: string): Promise<vo
             rx="4" fill="${TABLE_BADGE_COLOR}"/>
       <text x="50%" y="${TABLE_POSITION.height / 2}" dominant-baseline="middle" text-anchor="middle"
             font-family="${CARD_FONT_FAMILY}" font-weight="700" letter-spacing="1"
-            font-size="${TABLE_FONT_SIZE}" fill="${TABLE_TEXT_COLOR}">
+            font-size="${tableFontSize}" fill="${TABLE_TEXT_COLOR}">
         ${escapeXml(tableLabel)}
       </text>
     </svg>

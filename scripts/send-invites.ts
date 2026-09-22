@@ -1,11 +1,17 @@
 import "./lib/loadEnv";
 import fs from "node:fs";
 import path from "node:path";
-import { fetchGuestsPendingCard, markCardSent, type Guest } from "./lib/airtable";
+import { appendSendNote, fetchGuestsPendingCard, markCardSent, type Guest } from "./lib/airtable";
 import { generateCard } from "./lib/generateCard";
 import { log, warn, error as logError } from "./lib/log";
 import { normalizePhone } from "./lib/phone";
-import { destroyClient, sendCard, waitForReady } from "./lib/sendWhatsapp";
+import {
+  destroyClient,
+  InconclusiveSendError,
+  sendCard,
+  type SentCallback,
+  waitForReady,
+} from "./lib/sendWhatsapp";
 import { randomDelay, slugify } from "./lib/utils";
 import { CAPTION, MAX_DELAY_MS, MIN_DELAY_MS, OUTPUT_DIR } from "./config";
 
@@ -34,16 +40,41 @@ async function processGuest(guest: Guest, { markSent }: { markSent: boolean }): 
     return "skipped";
   }
 
+  // Fires the instant sendCard() knows the message went out (confirmed or
+  // inconclusive-but-probably-sent) — before this function even returns.
+  // Marking here rather than after sendCard() resolves is what prevents a
+  // crash mid-send from leaving a real send unmarked and duplicated later.
+  const onSent: SentCallback = async (confirmed) => {
+    if (!markSent) return;
+    try {
+      await markCardSent(guest.id);
+    } catch (err) {
+      logError(
+        PHASE,
+        `Message to ${guest.name} sent, but failed to mark it in Airtable — fix this manually: ` +
+          `${err instanceof Error ? err.message : err}`,
+      );
+    }
+    if (!confirmed) {
+      try {
+        await appendSendNote(guest.id, "Access Card: sent (unconfirmed)");
+      } catch (err) {
+        logError(PHASE, `Also failed to write the Airtable note for ${guest.name}: ${err instanceof Error ? err.message : err}`);
+      }
+    }
+  };
+
   try {
     const outputPath = path.join(OUTPUT_DIR, `${slugify(guest.name)}-${guest.id}.png`);
     await generateCard(guest, outputPath);
-    await sendCard(phone.e164, outputPath, CAPTION(guest.name));
-    if (markSent) {
-      await markCardSent(guest.id);
-    }
+    await sendCard(phone.e164, outputPath, CAPTION(guest.name), onSent);
     log(PHASE, `✅ Done: ${guest.name} (${phone.e164})`);
     return "sent";
   } catch (err) {
+    if (err instanceof InconclusiveSendError) {
+      warn(PHASE, `⚠️  Unconfirmed for ${guest.name}: ${err.message} — marked as sent anyway.`);
+      return "sent";
+    }
     logError(PHASE, `Failed for ${guest.name}: ${err instanceof Error ? err.message : err}`);
     return "failed";
   }

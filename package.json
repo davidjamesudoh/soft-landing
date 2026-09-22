@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "send-invites": "tsx scripts/send-invites.ts",
-    "trigger-server": "tsx scripts/server.ts"
+    "trigger-server": "tsx scripts/server.ts",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
@@ -57,6 +58,7 @@
     "baseline-browser-mapping": "^2.10.35",
     "eslint": "^9",
     "eslint-config-next": "16.0.2",
+    "patch-package": "^8.0.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
     "typescript": "^5"

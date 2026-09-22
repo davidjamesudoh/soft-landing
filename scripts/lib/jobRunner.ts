@@ -1,6 +1,7 @@
 import path from "node:path";
 import {
   CAPTION,
+  CARD_SENT_YES_VALUE,
   MAX_DELAY_MS,
   MIN_DELAY_MS,
   OUTPUT_DIR,
@@ -27,6 +28,7 @@ import {
   reconnectClient,
   sendCard,
   sendText,
+  type SentCallback,
   waitForReady,
 } from "./sendWhatsapp";
 import { randomDelay, slugify } from "./utils";
@@ -132,6 +134,21 @@ export async function runJob(
     return { ok: false, message: err instanceof Error ? err.message : String(err) };
   }
 
+  // fetchGuestsPendingCard() already excludes already-sent guests, but a
+  // manual dashboard selection bypasses that filter by design (so an admin
+  // can deliberately resend a reminder/thank-you to specific people). Cards
+  // are the one case that must never be resent even on manual selection —
+  // a duplicate card is a duplicate WhatsApp message to a real guest, not
+  // just a redundant no-op — so this is enforced as a hard floor regardless
+  // of how the guest list was selected.
+  if (action.type === "card") {
+    const alreadySent = guests.filter((g) => g.cardSent === CARD_SENT_YES_VALUE);
+    guests = guests.filter((g) => g.cardSent !== CARD_SENT_YES_VALUE);
+    for (const g of alreadySent) {
+      log(PHASE, `Skipping ${g.name}: card already sent.`);
+    }
+  }
+
   if (guests.length === 0) {
     return { ok: true, message: `Nothing to send for ${actionLabel(action)} — no matching guests.` };
   }
@@ -175,33 +192,22 @@ async function processGuests(guests: Guest[], action: JobAction): Promise<void> 
       status.skipped++;
       pushLog(`⚠️  Skipped ${guest.name}: could not parse phone number "${guest.phone}".`);
     } else {
-      try {
-        await sendOne(guest, phone.e164, action);
-        await markActionSent(guest, action);
-        status.sent++;
-        pushLog(`✅ Sent (${actionLabel(action)}) to ${guest.name}`);
-      } catch (err) {
-        if (err instanceof InconclusiveSendError) {
-          // sendMessageOnce's verification step couldn't confirm this one
-          // way or the other — but every real-world case observed so far
-          // (repeated manual checks against actual WhatsApp) has turned
-          // out to be a genuine send, so we mark it sent rather than
-          // making the admin manually fix every ambiguous case. Still
-          // tracked as a distinct "unconfirmed" count (not silently
-          // merged into normal sends) and noted on the record, in case
-          // this pattern is ever wrong for a particular guest.
-          status.unconfirmed++;
+      // Fires from inside sendWhatsapp.ts the instant a message is known
+      // to have gone out (confirmed, or inconclusive-but-probably-sent) —
+      // well before the 15s server-ack wait, sending itself. Marking
+      // Airtable this early (rather than after sendOne() fully returns)
+      // is what actually prevents the "sent but never marked, resent as a
+      // duplicate on the next run" failure mode seen in practice.
+      const onSent: SentCallback = async (confirmed) => {
+        try {
+          await markActionSent(guest, action);
+        } catch (markErr) {
           pushLog(
-            `⚠️  Unconfirmed (${actionLabel(action)}) for ${guest.name}: ${err.message} ` +
-              `— marking as sent anyway (this verification failure has consistently meant it did send).`,
+            `❌ Message to ${guest.name} sent, but failed to mark it in Airtable — fix this manually: ` +
+              `${markErr instanceof Error ? markErr.message : markErr}`,
           );
-          try {
-            await markActionSent(guest, action);
-          } catch (markErr) {
-            pushLog(
-              `❌ Also failed to mark ${guest.name} as sent: ${markErr instanceof Error ? markErr.message : markErr}`,
-            );
-          }
+        }
+        if (!confirmed) {
           try {
             await appendSendNote(guest.id, `${actionLabel(action)}: sent (unconfirmed)`);
           } catch (noteErr) {
@@ -210,6 +216,28 @@ async function processGuests(guests: Guest[], action: JobAction): Promise<void> 
                 `${noteErr instanceof Error ? noteErr.message : noteErr}`,
             );
           }
+        }
+      };
+
+      try {
+        await sendOne(guest, phone.e164, action, onSent);
+        status.sent++;
+        pushLog(`✅ Sent (${actionLabel(action)}) to ${guest.name}`);
+      } catch (err) {
+        if (err instanceof InconclusiveSendError) {
+          // sendMessageOnce's verification step couldn't confirm this one
+          // way or the other — but every real-world case observed so far
+          // (repeated manual checks against actual WhatsApp) has turned
+          // out to be a genuine send, so onSent(false) above already
+          // marked it sent rather than making the admin manually fix every
+          // ambiguous case. Still tracked as a distinct "unconfirmed"
+          // count (not silently merged into normal sends), in case this
+          // pattern is ever wrong for a particular guest.
+          status.unconfirmed++;
+          pushLog(
+            `⚠️  Unconfirmed (${actionLabel(action)}) for ${guest.name}: ${err.message} ` +
+              `— marked as sent anyway (this verification failure has consistently meant it did send).`,
+          );
         } else {
           status.failed++;
           pushLog(`❌ Failed (${actionLabel(action)}) for ${guest.name}: ${err instanceof Error ? err.message : err}`);
@@ -245,12 +273,17 @@ async function processGuests(guests: Guest[], action: JobAction): Promise<void> 
   }
 }
 
-/** Sends only — does NOT mark Airtable. Marking is shared between the confirmed and unconfirmed paths in processGuests. */
-async function sendOne(guest: Guest, e164Phone: string, action: JobAction): Promise<void> {
+/** onSent marks Airtable as soon as sendWhatsapp.ts knows the message went out — see processGuests. */
+async function sendOne(
+  guest: Guest,
+  e164Phone: string,
+  action: JobAction,
+  onSent: SentCallback,
+): Promise<void> {
   if (action.type === "card") {
     const outputPath = path.join(OUTPUT_DIR, `${slugify(guest.name)}-${guest.id}.png`);
     await generateCard(guest, outputPath);
-    await sendCard(e164Phone, outputPath, CAPTION(guest.name));
+    await sendCard(e164Phone, outputPath, CAPTION(guest.name), onSent);
     return;
   }
 
@@ -258,9 +291,9 @@ async function sendOne(guest: Guest, e164Phone: string, action: JobAction): Prom
     const stage = REMINDER_STAGES.find((s) => s.key === action.stage);
     if (!stage) throw new Error(`Unknown reminder stage "${action.stage}"`);
     const text = REMINDER_MESSAGES[stage.key](guest.name);
-    await sendText(e164Phone, text);
+    await sendText(e164Phone, text, onSent);
     return;
   }
 
-  await sendText(e164Phone, THANK_YOU_MESSAGE(guest.name));
+  await sendText(e164Phone, THANK_YOU_MESSAGE(guest.name), onSent);
 }

@@ -154,14 +154,28 @@ function waitForServerAck(c: Client, messageId: string, timeoutMs: number): Prom
  * check the chat directly (read-only) to see if the message is actually
  * there before deciding whether it's safe to treat this as a failure.
  */
+/**
+ * Called the moment we know a message went out (confirmed or inconclusive-
+ * but-probably-sent) — before the server-ack wait or anything else that
+ * could crash the process. A guest whose message actually sent but whose
+ * Airtable record never got marked would silently receive a duplicate on
+ * the next run, so this must fire as early as possible, not after the
+ * full send+ack flow returns.
+ */
+export type SentCallback = (confirmed: boolean) => Promise<void>;
+
 async function sendMessageOnce(
   c: Client,
   chatId: string,
   content: string | MessageMedia,
+  onSent: SentCallback,
   options?: { caption?: string },
 ): Promise<Message> {
   const result = await c.sendMessage(chatId, content, options);
-  if (result) return result;
+  if (result) {
+    await onSent(true);
+    return result;
+  }
 
   warn(
     PHASE,
@@ -197,6 +211,7 @@ async function sendMessageOnce(
     const sentJustNow = last && Date.now() / 1000 - last.timestamp < 30;
     if (sentJustNow) {
       log(PHASE, "Confirmed via chat history: the message did go out despite no direct confirmation.");
+      await onSent(true);
       return last;
     }
     throw new Error(
@@ -205,6 +220,7 @@ async function sendMessageOnce(
     );
   }
 
+  await onSent(false);
   throw new InconclusiveSendError(
     `Couldn't verify whether the message actually sent — WhatsApp Web's chat-history check itself ` +
       `kept failing after ${VERIFY_ATTEMPTS} attempts (${lastVerifyError instanceof Error ? lastVerifyError.message : String(lastVerifyError)}). ` +
@@ -216,6 +232,7 @@ async function sendMessageOnce(
 async function sendAndConfirm(
   e164Phone: string,
   content: string | MessageMedia,
+  onSent: SentCallback,
   options?: { caption?: string },
 ): Promise<void> {
   const c = getClient();
@@ -228,7 +245,7 @@ async function sendAndConfirm(
   }
 
   log(PHASE, `Sending message to ${e164Phone}...`);
-  const message = await sendMessageOnce(c, numberId._serialized, content, options);
+  const message = await sendMessageOnce(c, numberId._serialized, content, onSent, options);
 
   const ack = await waitForServerAck(c, message.id._serialized, 15000);
   if (ack === MessageAck.ACK_ERROR) {
@@ -246,14 +263,19 @@ async function sendAndConfirm(
   log(PHASE, `Message to ${e164Phone} confirmed received by WhatsApp's servers.`);
 }
 
-export async function sendCard(e164Phone: string, imagePath: string, caption: string): Promise<void> {
+export async function sendCard(
+  e164Phone: string,
+  imagePath: string,
+  caption: string,
+  onSent: SentCallback,
+): Promise<void> {
   const media = MessageMedia.fromFilePath(imagePath);
-  await sendAndConfirm(e164Phone, media, { caption });
+  await sendAndConfirm(e164Phone, media, onSent, { caption });
 }
 
 /** Plain text message — used for reminders and the thank-you message (no card image). */
-export async function sendText(e164Phone: string, text: string): Promise<void> {
-  await sendAndConfirm(e164Phone, text);
+export async function sendText(e164Phone: string, text: string, onSent: SentCallback): Promise<void> {
+  await sendAndConfirm(e164Phone, text, onSent);
 }
 
 export async function destroyClient(): Promise<void> {

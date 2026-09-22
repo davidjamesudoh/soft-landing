@@ -14,8 +14,7 @@ export const faqItems = [
   {
     id: "3",
     question: "When should I RSVP?",
-    answer:
-      "The best time is now and the next best time is by 24th August 2026. Your RSVP helps us take care of all the little details that make this day special. We can't wait to have you celebrate with us.",
+    answer: "24th August 2026 was the last best time.",
   },
   {
     id: "4",
@@ -43,7 +42,7 @@ export const scheduleList = [
     date: "DAY 1 (OCT. 29TH)",
     title: "Church Wedding 💒",
     description:
-      "This is where it all begins. We'll be joining hands and hearts before God, making our vows under the covenant of our faith in Christ Jesus. The ceremony will last ~1 hour.",
+      "This is where it all begins. We'll be joining hands and hearts before God, making our vows under the covenant of our faith in Christ Jesus. The ceremony will will start by 11am and will last for ~1 hour.",
   },
   {
     date: "DAY 2 (OCT. 30TH)",

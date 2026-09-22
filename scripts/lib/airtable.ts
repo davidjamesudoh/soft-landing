@@ -19,6 +19,7 @@ export interface Guest {
   name: string;
   phone: string;
   tableNumber?: string;
+  cardSent?: string;
 }
 
 function getTable() {
@@ -56,6 +57,7 @@ function recordToGuest(record: Airtable.Record<Airtable.FieldSet>): Guest | null
     phone,
     tableNumber:
       rawTableNumber !== undefined && rawTableNumber !== null ? String(rawTableNumber) : undefined,
+    cardSent: record.get(CARD_SENT_FIELD) as string | undefined,
   };
 }
 

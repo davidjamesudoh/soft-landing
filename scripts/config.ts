@@ -29,7 +29,7 @@ export const QR_LIGHT_COLOR = "#c1335e";
 // lib/generateCard.ts — down to NAME_MIN_FONT_SIZE before anything would
 // actually overflow the card.
 export const NAME_POSITION = {
-  top: 1405,
+  top: 1385,
   left: 0,
   width: CARD_WIDTH,
   height: 90,
@@ -41,17 +41,33 @@ export const NAME_LETTER_SPACING = 1;
 export const NAME_COLOR = "#a0972a";
 
 // Measured badge: x=[731,947] (width 216), y=[1506,1560] (height 54).
+// top nudged down from the measured 1498 to add breathing room below the
+// name (there's ~82px of spare oval space before the venue script begins,
+// so this stays safely clear of it).
 export const TABLE_POSITION = {
-  top: 1498,
+  top: 1480,
   left: 0,
   width: CARD_WIDTH,
   height: 70,
 };
 export const TABLE_FONT_SIZE = 50;
+export const TABLE_MIN_FONT_SIZE = 24;
 export const TABLE_TEXT_COLOR = "#fefaf5";
 export const TABLE_BADGE_COLOR = "#c1335e";
 export const TABLE_BADGE_WIDTH = 316;
 export const TABLE_BADGE_HEIGHT = 68;
+
+// Special table-number display overrides — e.g. named "high tables" that
+// should show a label instead of "TABLE ##". Keyed by the exact Table
+// Number value as stored in Airtable. These labels are longer than a
+// normal "TABLE 03", so generateCard.ts auto-shrinks the badge font (down
+// to TABLE_MIN_FONT_SIZE) to keep them inside the same fixed badge width
+// rather than resizing the badge itself.
+export const SPECIAL_TABLE_LABELS: Record<string, string> = {
+  "102": "HIGH TABLE (G)",
+  "0": "HIGH TABLE (B)",
+  "100": "BRIDE & GROOM",
+};
 
 // Both name and table text are set in DM Sans Bold (matching the site's
 // own font, app/layout.tsx). sharp's SVG renderer doesn't reliably see
@@ -99,17 +115,21 @@ export const WHATSAPP_SENDER_PHONE =
   process.env.WHATSAPP_SENDER_PHONE || undefined;
 
 export const CAPTION = (name: string) =>
-  `Dear ${name},
+  `Tomini Adebayo & David James Udoh Wedding 💍
 
-Thank you for saying yes! We're so happy you'll be with us on October 30, 2026, at Stadplus Event Centre, XPRESS HOUSE, Off Otunba Jobi Fele Way, CBD, Alausa, Ikeja, Lagos State, Nigeria by 1PM.
+Dear ${name},
 
-Attached is your personal e-access card. It's just for you, one use only and can't be shared or reused once scanned. Please keep it safe.
+We're so happy to have you join us on October 30, 2026, at Stadplus Event Centre, XPRESS HOUSE, Off Otunba Jobi Fele Way, CBD, Alausa, Ikeja, Lagos State.
 
-Keep your QR code close by for entry.
+🕐 Reception starts at 1PM, kindly be seated by then.
+
+Attached is your personal e-access card, just for you, one use only, and non-transferable once scanned. Please keep it and your QR code safe for entry.
 
 We know your presence is a gift, and honestly? We couldn't agree more. But if your heart is feeling extra generous, we won't say no! Take a peek at our registry: https://www.softlanding.fyi/#registry
 
-We can't wait for you to be part of our #SoftLanding. See you there! 🥂
+Also, we love your little ones, but this will be a grown-ups-only celebration 🙂 We hope you can still make it! 
+
+We can't wait to celebrate with you! 🥂
 
 With love,
 Tomini & David`;
@@ -129,12 +149,42 @@ export interface ReminderStage {
 // Requires a "Reminder 14d Sent" field (single select, "Not yet"/"Yes")
 // on the Airtable table, matching the other reminder-stage fields.
 export const REMINDER_STAGES: ReminderStage[] = [
-  { key: "30d", label: "30 days to go", daysBefore: 30, fieldName: "Reminder 30d Sent" },
-  { key: "14d", label: "2 weeks to go", daysBefore: 14, fieldName: "Reminder 14d Sent" },
-  { key: "7d", label: "7 days to go", daysBefore: 7, fieldName: "Reminder 7d Sent" },
-  { key: "3d", label: "3 days to go", daysBefore: 3, fieldName: "Reminder 3d Sent" },
-  { key: "1d", label: "1 day to go", daysBefore: 1, fieldName: "Reminder 1d Sent" },
-  { key: "morning", label: "Morning of", daysBefore: 0, fieldName: "Reminder Morning Sent" },
+  {
+    key: "30d",
+    label: "30 days to go",
+    daysBefore: 30,
+    fieldName: "Reminder 30d Sent",
+  },
+  {
+    key: "14d",
+    label: "2 weeks to go",
+    daysBefore: 14,
+    fieldName: "Reminder 14d Sent",
+  },
+  {
+    key: "7d",
+    label: "7 days to go",
+    daysBefore: 7,
+    fieldName: "Reminder 7d Sent",
+  },
+  {
+    key: "3d",
+    label: "3 days to go",
+    daysBefore: 3,
+    fieldName: "Reminder 3d Sent",
+  },
+  {
+    key: "1d",
+    label: "1 day to go",
+    daysBefore: 1,
+    fieldName: "Reminder 1d Sent",
+  },
+  {
+    key: "morning",
+    label: "Morning of",
+    daysBefore: 0,
+    fieldName: "Reminder Morning Sent",
+  },
 ];
 
 export const THANK_YOU_SENT_FIELD = "Thank You Sent";

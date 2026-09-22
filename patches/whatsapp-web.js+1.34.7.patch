@@ -1,0 +1,21 @@
+diff --git a/node_modules/whatsapp-web.js/src/util/Injected/Utils.js b/node_modules/whatsapp-web.js/src/util/Injected/Utils.js
+index 540078a..808c2f7 100644
+--- a/node_modules/whatsapp-web.js/src/util/Injected/Utils.js
++++ b/node_modules/whatsapp-web.js/src/util/Injected/Utils.js
+@@ -483,6 +483,16 @@ exports.LoadUtils = () => {
+             ...extraOptions,
+         };
+ 
++        // Fix for current WhatsApp Web builds (2.3000.10477+, rolled out
++        // 2026-09-17): processMediaData()'s returned model carries a
++        // private __x_id field that leaks onto `message` via the
++        // ...mediaOptions spread above. WA Web's own Msg.initialize now
++        // treats any __x_id it finds as the model id, which breaks
++        // getValidatedSender() with "Data passed to getter must include
++        // an id property... but got undefined" for every media send.
++        // See: https://github.com/wwebjs/whatsapp-web.js/issues/201921
++        delete message.__x_id;
++
+         // Bot's won't reply if canonicalUrl is set (linking)
+         if (botOptions) {
+             delete message.canonicalUrl;
