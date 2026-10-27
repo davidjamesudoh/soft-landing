@@ -55,12 +55,21 @@ export default function DashboardHomePage() {
   const [pollKey, setPollKey] = useState(0);
   const [lastMessage, setLastMessage] = useState<string | null>(null);
   const [isEventDay] = useState(
-    () => new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Lagos" }) === EVENT_DAY,
+    () =>
+      new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Lagos" }) ===
+      EVENT_DAY,
   );
   const [scannerOpen, setScannerOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [cardSentFilter, setCardSentFilter] = useState<"all" | "Yes" | "Not yet">("all");
-  const [checkedInFilter, setCheckedInFilter] = useState<"all" | "Yes" | "Not yet">("all");
+  const [cardSentFilter, setCardSentFilter] = useState<
+    "all" | "Yes" | "Not yet"
+  >("all");
+  const [checkedInFilter, setCheckedInFilter] = useState<
+    "all" | "Yes" | "Not yet"
+  >("all");
+  const [reminderSentFilter, setReminderSentFilter] = useState<
+    "all" | "Yes" | "Not yet"
+  >("all");
 
   const loadGuests = useCallback(() => {
     fetch("/api/dashboard/guests")
@@ -88,7 +97,11 @@ export default function DashboardHomePage() {
     });
   }
 
-  const hasActiveFilters = !!search.trim() || cardSentFilter !== "all" || checkedInFilter !== "all";
+  const hasActiveFilters =
+    !!search.trim() ||
+    cardSentFilter !== "all" ||
+    checkedInFilter !== "all" ||
+    reminderSentFilter !== "all";
 
   // Guests with no table number (or a non-numeric one) sort to the end,
   // in original order among themselves, rather than being interleaved.
@@ -106,9 +119,20 @@ export default function DashboardHomePage() {
   const filteredGuests = guests
     ? guests
         .filter((g) => {
-          if (search.trim() && !g.name.toLowerCase().includes(search.trim().toLowerCase())) return false;
-          if (cardSentFilter !== "all" && g.cardSent !== cardSentFilter) return false;
-          if (checkedInFilter !== "all" && g.checkedIn !== checkedInFilter) return false;
+          if (
+            search.trim() &&
+            !g.name.toLowerCase().includes(search.trim().toLowerCase())
+          )
+            return false;
+          if (cardSentFilter !== "all" && g.cardSent !== cardSentFilter)
+            return false;
+          if (checkedInFilter !== "all" && g.checkedIn !== checkedInFilter)
+            return false;
+          if (
+            reminderSentFilter !== "all" &&
+            g.reminderSent !== reminderSentFilter
+          )
+            return false;
           return true;
         })
         .sort(byTableNumber)
@@ -117,7 +141,8 @@ export default function DashboardHomePage() {
   function toggleAll() {
     if (!filteredGuests) return;
     const filteredIds = filteredGuests.map((g) => g.id);
-    const allFilteredSelected = filteredIds.length > 0 && filteredIds.every((id) => selected.has(id));
+    const allFilteredSelected =
+      filteredIds.length > 0 && filteredIds.every((id) => selected.has(id));
     setSelected((prev) => {
       const next = new Set(prev);
       if (allFilteredSelected) {
@@ -162,6 +187,10 @@ export default function DashboardHomePage() {
               label="Checked in"
               value={`${guests.filter((g) => g.checkedIn === "Yes").length} / ${guests.length}`}
             />
+            <StatCard
+              label="First Reminder sent"
+              value={`${guests.filter((g) => g.reminderSent === "Yes").length} / ${guests.length}`}
+            />
           </div>
 
           <div
@@ -173,7 +202,7 @@ export default function DashboardHomePage() {
             }}
           >
             <button
-              disabled={!isEventDay}
+              // disabled={!isEventDay}
               onClick={() => setScannerOpen(true)}
               title={
                 isEventDay
@@ -233,7 +262,14 @@ export default function DashboardHomePage() {
             </p>
           ) : (
             <>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 10,
+                  flexWrap: "wrap",
+                  marginBottom: 10,
+                }}
+              >
                 <input
                   type="text"
                   value={search}
@@ -251,8 +287,17 @@ export default function DashboardHomePage() {
                 />
                 <select
                   value={cardSentFilter}
-                  onChange={(e) => setCardSentFilter(e.target.value as "all" | "Yes" | "Not yet")}
-                  style={{ padding: "8px 10px", fontSize: 14, borderRadius: 6, border: "1px solid #ccc" }}
+                  onChange={(e) =>
+                    setCardSentFilter(
+                      e.target.value as "all" | "Yes" | "Not yet",
+                    )
+                  }
+                  style={{
+                    padding: "8px 10px",
+                    fontSize: 14,
+                    borderRadius: 6,
+                    border: "1px solid #ccc",
+                  }}
                 >
                   <option value="all">Card Sent: All</option>
                   <option value="Yes">Card Sent: Yes</option>
@@ -260,22 +305,59 @@ export default function DashboardHomePage() {
                 </select>
                 <select
                   value={checkedInFilter}
-                  onChange={(e) => setCheckedInFilter(e.target.value as "all" | "Yes" | "Not yet")}
-                  style={{ padding: "8px 10px", fontSize: 14, borderRadius: 6, border: "1px solid #ccc" }}
+                  onChange={(e) =>
+                    setCheckedInFilter(
+                      e.target.value as "all" | "Yes" | "Not yet",
+                    )
+                  }
+                  style={{
+                    padding: "8px 10px",
+                    fontSize: 14,
+                    borderRadius: 6,
+                    border: "1px solid #ccc",
+                  }}
                 >
                   <option value="all">Checked In: All</option>
                   <option value="Yes">Checked In: Yes</option>
                   <option value="Not yet">Checked In: Not yet</option>
                 </select>
+                <select
+                  value={reminderSentFilter}
+                  onChange={(e) =>
+                    setReminderSentFilter(
+                      e.target.value as "all" | "Yes" | "Not yet",
+                    )
+                  }
+                  style={{
+                    padding: "8px 10px",
+                    fontSize: 14,
+                    borderRadius: 6,
+                    border: "1px solid #ccc",
+                  }}
+                >
+                  <option value="all">First Reminder Sent: All</option>
+                  <option value="Yes">First Reminder Sent: Yes</option>
+                  <option value="Not yet">First Reminder Sent: Not yet</option>
+                </select>
               </div>
               {hasActiveFilters && (
-                <p style={{ fontSize: 12, color: "#999", marginTop: -6, marginBottom: 10 }}>
-                  {filteredGuests?.length ?? 0} of {guests.length} guests match the current filters
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "#999",
+                    marginTop: -6,
+                    marginBottom: 10,
+                  }}
+                >
+                  {filteredGuests?.length ?? 0} of {guests.length} guests match
+                  the current filters
                 </p>
               )}
 
               {filteredGuests && filteredGuests.length === 0 ? (
-                <p style={{ color: "#666", fontSize: 14 }}>No guests match the current filters.</p>
+                <p style={{ color: "#666", fontSize: 14 }}>
+                  No guests match the current filters.
+                </p>
               ) : (
                 <table
                   style={{
@@ -307,6 +389,9 @@ export default function DashboardHomePage() {
                       <th style={{ padding: "8px 6px" }}>Table</th>
                       <th style={{ padding: "8px 6px" }}>Card Sent</th>
                       <th style={{ padding: "8px 6px" }}>Checked In</th>
+                      <th style={{ padding: "8px 6px" }}>
+                        First Reminder Sent
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -329,6 +414,9 @@ export default function DashboardHomePage() {
                         </td>
                         <td style={{ padding: "8px 6px" }}>
                           <Badge value={g.checkedIn} />
+                        </td>
+                        <td style={{ padding: "8px 6px" }}>
+                          <Badge value={g.reminderSent} />
                         </td>
                       </tr>
                     ))}

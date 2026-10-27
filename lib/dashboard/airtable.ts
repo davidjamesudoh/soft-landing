@@ -10,6 +10,7 @@ const ATTENDING_YES_VALUE = "Yes! Wouldn’t miss it for anything";
 const TABLE_NUMBER_FIELD = "Table Number";
 const CARD_SENT_FIELD = "Card Sent";
 const CHECK_IN_FIELD = "Check In";
+const REMINDER_SENT_FIELD = "First Reminder Sent";
 
 export interface DashboardGuest {
   id: string;
@@ -18,6 +19,7 @@ export interface DashboardGuest {
   tableNumber?: string;
   cardSent: "Yes" | "Not yet";
   checkedIn: "Yes" | "Not yet";
+  reminderSent: "Yes" | "Not yet";
 }
 
 function getTable() {
@@ -46,6 +48,7 @@ function recordToDashboardGuest(record: Airtable.Record<Airtable.FieldSet>): Das
       rawTableNumber !== undefined && rawTableNumber !== null ? String(rawTableNumber) : undefined,
     cardSent: ((record.get(CARD_SENT_FIELD) as string) || "Not yet") as "Yes" | "Not yet",
     checkedIn: ((record.get(CHECK_IN_FIELD) as string) || "Not yet") as "Yes" | "Not yet",
+    reminderSent: ((record.get(REMINDER_SENT_FIELD) as string) || "Not yet") as "Yes" | "Not yet",
   };
 }
 

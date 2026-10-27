@@ -7,6 +7,7 @@ import {
   CARD_SENT_YES_VALUE,
   NAME_FIELD,
   PHONE_FIELD,
+  REMINDER_STAGES,
   SEND_NOTES_FIELD,
   TABLE_NUMBER_FIELD,
 } from "../config";
@@ -20,6 +21,7 @@ export interface Guest {
   phone: string;
   tableNumber?: string;
   cardSent?: string;
+  reminderSent?: string;
 }
 
 function getTable() {
@@ -58,6 +60,7 @@ function recordToGuest(record: Airtable.Record<Airtable.FieldSet>): Guest | null
     tableNumber:
       rawTableNumber !== undefined && rawTableNumber !== null ? String(rawTableNumber) : undefined,
     cardSent: record.get(CARD_SENT_FIELD) as string | undefined,
+    reminderSent: record.get(REMINDER_STAGES[0].fieldName) as string | undefined,
   };
 }
 

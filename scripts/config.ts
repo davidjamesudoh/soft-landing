@@ -134,121 +134,45 @@ We can't wait to celebrate with you! 🥂
 With love,
 Tomini & David`;
 
-// Event date/time in Lagos (WAT, UTC+1, no DST) — used by the reminder
-// auto-scheduler to compute days-until-event.
+// Event date/time in Lagos (WAT, UTC+1, no DST).
 export const EVENT_DATE = "2026-10-30T13:00:00+01:00";
 
 export interface ReminderStage {
   key: string;
   label: string;
-  /** Days before EVENT_DATE this stage fires. 0 = morning-of. */
-  daysBefore: number;
   fieldName: string;
 }
 
-// Requires a "Reminder 14d Sent" field (single select, "Not yet"/"Yes")
-// on the Airtable table, matching the other reminder-stage fields.
+// Previously a staged 30d/14d/7d/3d/1d/morning-of sequence, auto-fired by
+// scripts/lib/scheduler.ts on matching dates. Replaced with a single,
+// manually-triggered reminder — requires a "First Reminder Sent" field
+// (single select, "Not yet"/"Yes") on the Airtable table.
 export const REMINDER_STAGES: ReminderStage[] = [
   {
-    key: "30d",
-    label: "30 days to go",
-    daysBefore: 30,
-    fieldName: "Reminder 30d Sent",
-  },
-  {
-    key: "14d",
-    label: "2 weeks to go",
-    daysBefore: 14,
-    fieldName: "Reminder 14d Sent",
-  },
-  {
-    key: "7d",
-    label: "7 days to go",
-    daysBefore: 7,
-    fieldName: "Reminder 7d Sent",
-  },
-  {
-    key: "3d",
-    label: "3 days to go",
-    daysBefore: 3,
-    fieldName: "Reminder 3d Sent",
-  },
-  {
-    key: "1d",
-    label: "1 day to go",
-    daysBefore: 1,
-    fieldName: "Reminder 1d Sent",
-  },
-  {
-    key: "morning",
-    label: "Morning of",
-    daysBefore: 0,
-    fieldName: "Reminder Morning Sent",
+    key: "reminder",
+    label: "Reminder",
+    fieldName: "First Reminder Sent",
   },
 ];
 
 export const THANK_YOU_SENT_FIELD = "Thank You Sent";
 
 export const REMINDER_MESSAGES: Record<string, (name: string) => string> = {
-  "30d": (name) =>
-    `Dear ${name},
+  reminder: (name) =>
+    `Tomini & David's Wedding 💍
 
-30 days to go! 💍 We're counting down to our #SoftLanding on *October 30, 2026*, and we're so happy you'll be there with us.
+Dear ${name},
 
-📍 Stadplus Event Centre, XPRESS HOUSE, Off Otunba Jobi Fele Way, CBD, Alausa, Ikeja, Lagos State
-🕐 Please be seated by 1PM
+A reminder that Tomini & David's big day is on October 30, 2026.
 
-Hold on to your e-access card and QR code, you'll need it on the day. Can't wait to celebrate with you soon!`,
+Reception: 1PM
+Guest colour of the day: White and Coral
 
-  "14d": (name) =>
-    `Dear ${name},
+Please save your e-access card on your phone. It has the QR code, Table number and venue, and admits only you.
 
-2 weeks to go! 💍 We're getting so excited for our #SoftLanding on *October 30, 2026*.
+Kindly note, no children or plus one please.
 
-📍 Stadplus Event Centre, XPRESS HOUSE, Off Otunba Jobi Fele Way, CBD, Alausa, Ikeja, Lagos State
-🕐 Please be seated by 1PM
-
-Keep your e-access card and QR code safe, you'll need it to get in on the day. Can't wait to celebrate with you!`,
-
-  "7d": (name) =>
-    `Dear ${name},
-
-One week to go! 🥂 Tomini & David's wedding is almost here, *October 30, 2026*.
-
-📍 Stadplus Event Centre, XPRESS HOUSE, Off Otunba Jobi Fele Way, CBD, Alausa, Ikeja, Lagos State
-🕐 Please be seated by 1PM
-
-Please keep your e-access card and QR code handy, it's your entry pass and can only be used once. We're getting so excited!`,
-
-  "3d": (name) =>
-    `Dear ${name},
-
-Just 3 days left 💍 Our #SoftLanding is almost here!
-
-📍 Stadplus Event Centre, XPRESS HOUSE, Off Otunba Jobi Fele Way, CBD, Alausa, Ikeja, Lagos State
-🕐 Please be seated by 1PM
-
-Please have your e-access card and QR code ready to go. We can't wait to see you.`,
-
-  "1d": (name) =>
-    `Dear ${name},
-
-Tomorrow's the day! 🥂 We are so ready to celebrate with you.
-
-📍 Stadplus Event Centre, XPRESS HOUSE, Off Otunba Jobi Fele Way, CBD, Alausa, Ikeja, Lagos State
-🕐 Please be seated by 1PM
-
-Please have your e-access card and QR code saved and ready for tomorrow. See you soon!`,
-
-  morning: (name) =>
-    `Good morning ${name} 💍
-
-Today's the day! Tomini & David can't wait to celebrate their #SoftLanding with you.
-
-📍 Stadplus Event Centre, XPRESS HOUSE, Off Otunba Jobi Fele Way, CBD, Alausa, Ikeja, Lagos State
-🕐 Please be seated by 1PM
-
-Kindly have your e-access card and QR code ready for entry. See you soon!`,
+See you soon! 🥂`,
 };
 
 export const THANK_YOU_MESSAGE = (name: string) =>

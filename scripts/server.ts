@@ -4,7 +4,6 @@ import http from "node:http";
 import { REMINDER_STAGES } from "./config";
 import { getStatus, runJob } from "./lib/jobRunner";
 import { log, error as logError } from "./lib/log";
-import { startScheduler } from "./lib/scheduler";
 import { destroyClient, waitForReady } from "./lib/sendWhatsapp";
 
 const PHASE = "Server";
@@ -79,16 +78,36 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
+// WhatsApp Web reloads its own pre-auth page periodically (roughly every
+// ~20s while unpaired); if the library's startup checks land mid-reload,
+// they fail with a transient error ("execution context was destroyed" /
+// "Cannot read properties of null"), not a real, persistent problem. A
+// short retry here saves having to manually rerun the whole command for
+// what's usually just bad timing on the first attempt.
+async function connectWithRetries(maxAttempts = 3): Promise<void> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await waitForReady();
+      return;
+    } catch (err) {
+      if (attempt === maxAttempts) throw err;
+      logError(
+        PHASE,
+        `Connection attempt ${attempt}/${maxAttempts} failed (${err instanceof Error ? err.message : err}) — retrying in 5s...`,
+      );
+      await new Promise((r) => setTimeout(r, 5000));
+    }
+  }
+}
+
 async function main() {
   log(PHASE, "Starting WhatsApp client...");
-  await waitForReady();
+  await connectWithRetries();
   log(PHASE, "WhatsApp client ready.");
 
   server.listen(PORT, () => {
     log(PHASE, `Listening on http://localhost:${PORT}`);
   });
-
-  startScheduler();
 }
 
 main().catch((err) => {

@@ -2,18 +2,6 @@
 
 import { useState, type CSSProperties } from "react";
 
-// Keep in sync with scripts/config.ts REMINDER_STAGES (key + label only —
-// this is just a client-side picker, the server owns the actual field
-// names/message copy).
-const REMINDER_STAGES = [
-  { key: "30d", label: "30 days to go" },
-  { key: "14d", label: "2 weeks to go" },
-  { key: "7d", label: "7 days to go" },
-  { key: "3d", label: "3 days to go" },
-  { key: "1d", label: "1 day to go" },
-  { key: "morning", label: "Morning of" },
-];
-
 function buttonStyle(disabled: boolean): CSSProperties {
   return {
     fontSize: 13,
@@ -35,7 +23,6 @@ export default function ActionBar({
   selectedIds: string[];
   onTriggered: (message: string) => void;
 }) {
-  const [stage, setStage] = useState(REMINDER_STAGES[0].key);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,28 +65,20 @@ export default function ActionBar({
       }}
     >
       <span style={{ fontSize: 13, color: "#666" }}>
-        {selectedIds.length === 0 ? "Select guests to act on" : `${selectedIds.length} selected`}
+        {selectedIds.length === 0
+          ? "Select guests to act on"
+          : `${selectedIds.length} selected`}
       </span>
 
-      <button disabled={disabled} onClick={() => trigger("/api/dashboard/trigger-card")} style={buttonStyle(disabled)}>
+      {/* <button disabled={disabled} onClick={() => trigger("/api/dashboard/trigger-card")} style={buttonStyle(disabled)}>
         Send Access Card
-      </button>
+      </button> */}
 
-      <select
-        value={stage}
-        onChange={(e) => setStage(e.target.value)}
-        disabled={busy}
-        style={{ fontSize: 13, padding: "7px 8px", borderRadius: 6, border: "1px solid #ccc" }}
-      >
-        {REMINDER_STAGES.map((s) => (
-          <option key={s.key} value={s.key}>
-            {s.label}
-          </option>
-        ))}
-      </select>
       <button
         disabled={disabled}
-        onClick={() => trigger("/api/dashboard/trigger-reminder", { stage })}
+        onClick={() =>
+          trigger("/api/dashboard/trigger-reminder", { stage: "reminder" })
+        }
         style={buttonStyle(disabled)}
       >
         Send Reminder

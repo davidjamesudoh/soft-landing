@@ -1,3 +1,44 @@
+diff --git a/node_modules/whatsapp-web.js/src/Client.js b/node_modules/whatsapp-web.js/src/Client.js
+index 800109e..a96fc62 100644
+--- a/node_modules/whatsapp-web.js/src/Client.js
++++ b/node_modules/whatsapp-web.js/src/Client.js
+@@ -214,11 +214,31 @@ class Client extends EventEmitter {
+                         return code;
+                     },
+                 );
+-                this.requestPairingCode(
+-                    pairWithPhoneNumber.phoneNumber,
+-                    pairWithPhoneNumber.showNotification,
+-                    pairWithPhoneNumber.intervalMs,
+-                );
++                // requestPairingCode() reliably fails (minified error "t")
++                // when it lands mid-reload of WhatsApp Web's pre-auth page,
++                // which reloads roughly every ~20s while unpaired. A few
++                // quick retries *within this same page/session* (cheap,
++                // ~2s apart) land in a stable window far more reliably than
++                // relaunching the whole browser from scratch each time.
++                (async () => {
++                    const maxAttempts = 4;
++                    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
++                        try {
++                            await this.requestPairingCode(
++                                pairWithPhoneNumber.phoneNumber,
++                                pairWithPhoneNumber.showNotification,
++                                pairWithPhoneNumber.intervalMs,
++                            );
++                            return;
++                        } catch (err) {
++                            if (attempt === maxAttempts) {
++                                this.emit(Events.AUTHENTICATION_FAILURE, err && err.message ? err.message : String(err));
++                                return;
++                            }
++                            await new Promise((r) => setTimeout(r, 2000));
++                        }
++                    }
++                })();
+             } else {
+                 let qrRetries = 0;
+                 await exposeFunctionIfAbsent(
 diff --git a/node_modules/whatsapp-web.js/src/util/Injected/Utils.js b/node_modules/whatsapp-web.js/src/util/Injected/Utils.js
 index 540078a..808c2f7 100644
 --- a/node_modules/whatsapp-web.js/src/util/Injected/Utils.js
