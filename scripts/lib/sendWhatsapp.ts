@@ -73,7 +73,23 @@ function getClient(): Client {
     client.on("authenticated", () => log(PHASE, "Authenticated. Waiting for WhatsApp Web to load..."));
     client.on("auth_failure", (msg) => warn(PHASE, `Authentication failed: ${msg}`));
     client.on("change_state", (state) => log(PHASE, `State changed: ${state}`));
-    client.on("disconnected", (reason) => warn(PHASE, `Disconnected: ${reason}`));
+    client.on("disconnected", (reason) => {
+      warn(PHASE, `Disconnected: ${reason}`);
+      // Previously this only logged — the readyPromise stayed resolved and
+      // this same dead Client instance kept getting reused for every
+      // subsequent send, which silently failed (sendMessage() returns
+      // nothing, chat-history reads throw) while looking like ordinary
+      // "unconfirmed" flakiness. Confirmed in practice on 2026-09-23: over
+      // 300 real sends went out fine, then a logout happened and every
+      // send after that silently failed for hours with no visible error,
+      // because nothing ever reset this state. Nulling it out here forces
+      // the next getClient()/waitForReady() call to launch a completely
+      // fresh client, which will either reconnect cleanly on the existing
+      // session or surface a clear "needs pairing again" state — either
+      // way, loud instead of silent.
+      client = null;
+      readyPromise = null;
+    });
   }
   return client;
 }
@@ -99,14 +115,44 @@ export function waitForReady(): Promise<void> {
   const c = getClient();
   if (!readyPromise) {
     readyPromise = new Promise((resolve, reject) => {
+      let settled = false;
       c.on("ready", async () => {
+        if (settled) return;
         log(PHASE, "Client ready. Giving WhatsApp Web a few seconds to finish syncing...");
         await new Promise((r) => setTimeout(r, READY_SETTLE_MS));
         log(PHASE, "Ready to send.");
+        settled = true;
         resolve();
       });
+      // Without this, a failed pairing/QR attempt just hangs here forever —
+      // "ready" never fires, nothing else ever resolves or rejects this
+      // promise, and the caller (e.g. send-invites.ts's `await
+      // waitForReady()`) sits stuck with no error and no way to know
+      // something went wrong. Confirmed in practice: requestPairingCode()
+      // failing (a mid-navigation race in the library, surfaced as
+      // auth_failure by the Client.js patch) left the process hanging
+      // indefinitely with no indication of failure.
+      c.on("auth_failure", (msg) => {
+        if (settled) return;
+        settled = true;
+        readyPromise = null;
+        // Also drop the Client itself — it launched a real browser that's
+        // now stuck mid-auth, and reusing it for a retry (rather than
+        // getting a fresh one via getClient()) has proven unreliable.
+        client = null;
+        c.destroy()
+          .catch(() => {})
+          .finally(clearStaleBrowserLock);
+        reject(new Error(`WhatsApp authentication failed: ${msg}`));
+      });
       c.initialize().catch((err) => {
+        if (settled) return;
+        settled = true;
         readyPromise = null; // don't leave a rejected promise cached — allow a later retry to start clean
+        client = null; // same reasoning as auth_failure above — force a fresh browser on retry
+        c.destroy()
+          .catch(() => {})
+          .finally(clearStaleBrowserLock);
         reject(err);
       });
     });
@@ -189,7 +235,7 @@ async function sendMessageOnce(
   // Retry ONLY that failure mode a few times — if the check instead
   // succeeds and confidently finds nothing recent, that's a conclusive
   // "did not send" and we act on it immediately, no retry needed.
-  const VERIFY_ATTEMPTS = 3;
+  const VERIFY_ATTEMPTS = 2;
   let lastVerifyError: unknown;
 
   for (let attempt = 1; attempt <= VERIFY_ATTEMPTS; attempt++) {

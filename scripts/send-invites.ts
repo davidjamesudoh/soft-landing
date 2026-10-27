@@ -17,6 +17,28 @@ import { CAPTION, MAX_DELAY_MS, MIN_DELAY_MS, OUTPUT_DIR } from "./config";
 
 const PHASE = "Run";
 
+// WhatsApp Web reloads its own pre-auth page periodically (roughly every
+// ~20s while unpaired); if the library's startup checks land mid-reload,
+// they fail with a transient error ("execution context was destroyed" /
+// "Cannot read properties of null"), not a real, persistent problem. A
+// short retry here saves having to manually rerun the whole command for
+// what's usually just bad timing on the first attempt.
+async function connectWithRetries(maxAttempts = 3): Promise<void> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await waitForReady();
+      return;
+    } catch (err) {
+      if (attempt === maxAttempts) throw err;
+      logError(
+        PHASE,
+        `Connection attempt ${attempt}/${maxAttempts} failed (${err instanceof Error ? err.message : err}) — retrying in 5s...`,
+      );
+      await new Promise((r) => setTimeout(r, 5000));
+    }
+  }
+}
+
 function parseArgs() {
   const args = process.argv.slice(2);
   const get = (flag: string) => {
@@ -87,7 +109,7 @@ async function main() {
 
   if (testPhone) {
     log(PHASE, `Test mode: sending one card to ${testPhone}. Airtable will not be touched.`);
-    await waitForReady();
+    await connectWithRetries();
     const result = await processGuest(
       { id: `TEST-${Date.now()}`, name: testName, phone: testPhone, tableNumber: testTable },
       { markSent: false },
@@ -104,7 +126,7 @@ async function main() {
     return;
   }
 
-  await waitForReady();
+  await connectWithRetries();
 
   const results: Record<SendResult, number> = { sent: 0, skipped: 0, failed: 0 };
 

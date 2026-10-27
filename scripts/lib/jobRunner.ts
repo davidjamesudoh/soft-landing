@@ -134,18 +134,25 @@ export async function runJob(
     return { ok: false, message: err instanceof Error ? err.message : String(err) };
   }
 
-  // fetchGuestsPendingCard() already excludes already-sent guests, but a
-  // manual dashboard selection bypasses that filter by design (so an admin
-  // can deliberately resend a reminder/thank-you to specific people). Cards
-  // are the one case that must never be resent even on manual selection —
-  // a duplicate card is a duplicate WhatsApp message to a real guest, not
-  // just a redundant no-op — so this is enforced as a hard floor regardless
-  // of how the guest list was selected.
+  // fetchGuestsPendingCard()/fetchGuestsPendingField() already exclude
+  // already-sent guests, but a manual dashboard selection bypasses that
+  // filter by design (so an admin can deliberately resend to specific
+  // people). Cards and reminders must never be resent even on manual
+  // selection — a duplicate is a duplicate WhatsApp message to a real
+  // guest, not just a redundant no-op — so this is enforced as a hard
+  // floor regardless of how the guest list was selected. Thank-you is
+  // deliberately left out: resending that one is still allowed on purpose.
   if (action.type === "card") {
     const alreadySent = guests.filter((g) => g.cardSent === CARD_SENT_YES_VALUE);
     guests = guests.filter((g) => g.cardSent !== CARD_SENT_YES_VALUE);
     for (const g of alreadySent) {
       log(PHASE, `Skipping ${g.name}: card already sent.`);
+    }
+  } else if (action.type === "reminder") {
+    const alreadySent = guests.filter((g) => g.reminderSent === CARD_SENT_YES_VALUE);
+    guests = guests.filter((g) => g.reminderSent !== CARD_SENT_YES_VALUE);
+    for (const g of alreadySent) {
+      log(PHASE, `Skipping ${g.name}: reminder already sent.`);
     }
   }
 
