@@ -202,7 +202,7 @@ export default function DashboardHomePage() {
             }}
           >
             <button
-              disabled={!isEventDay}
+              // disabled={!isEventDay}
               onClick={() => setScannerOpen(true)}
               title={
                 isEventDay
