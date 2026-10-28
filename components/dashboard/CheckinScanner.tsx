@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Html5Qrcode, Html5QrcodeScannerState } from "html5-qrcode";
+import * as Dialog from "@radix-ui/react-dialog";
 
 /**
  * Html5Qrcode's pause/resume/stop all throw *synchronously* (not a
@@ -60,46 +61,66 @@ const RESULT_STYLES: Record<ScanResult["status"], { bg: string; color: string; l
   invalid: { bg: "#fde8ee", color: "#c1335e", label: "❌ Invalid QR code" },
 };
 
+/**
+ * Shown as a modal so "Scan Next" is always on screen — no scrolling past the camera view on phones.
+ * Tapping the backdrop, pressing Escape, or "Scan Next" all close it and resume scanning.
+ */
 function ResultCard({ result, onScanNext }: { result: ScanResult; onScanNext: () => void }) {
   const s = RESULT_STYLES[result.status];
   return (
-    <div
-      style={{
-        maxWidth: 420,
-        margin: "16px auto 0",
-        background: s.bg,
-        borderRadius: 12,
-        padding: 24,
-        textAlign: "center",
-      }}
-    >
-      <div style={{ fontSize: 15, fontWeight: 700, color: s.color, marginBottom: 8 }}>{s.label}</div>
-      {"name" in result && (
-        <>
-          <div style={{ fontSize: 26, fontWeight: 700, marginBottom: 4 }}>{result.name}</div>
-          {result.tableNumber && (
-            <div style={{ fontSize: 16, color: "#555" }}>Table {result.tableNumber}</div>
+    <Dialog.Root open onOpenChange={(open) => !open && onScanNext()}>
+      <Dialog.Portal>
+        <Dialog.Overlay
+          style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0, 0, 0, 0.55)" }}
+        />
+        <Dialog.Content
+          aria-describedby={undefined}
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 1001,
+            width: "calc(100% - 32px)",
+            maxWidth: 420,
+            background: s.bg,
+            borderRadius: 12,
+            padding: 24,
+            textAlign: "center",
+            boxShadow: "0 10px 30px rgba(0, 0, 0, 0.25)",
+          }}
+        >
+          <Dialog.Title style={{ fontSize: 15, fontWeight: 700, color: s.color, margin: "0 0 8px" }}>
+            {s.label}
+          </Dialog.Title>
+          {"name" in result && (
+            <>
+              <div style={{ fontSize: 26, fontWeight: 700, marginBottom: 4 }}>{result.name}</div>
+              {result.tableNumber && (
+                <div style={{ fontSize: 16, color: "#555" }}>Table {result.tableNumber}</div>
+              )}
+            </>
           )}
-        </>
-      )}
-      {"error" in result && <div style={{ fontSize: 14, color: "#555" }}>{result.error}</div>}
-      <button
-        onClick={onScanNext}
-        style={{
-          marginTop: 16,
-          padding: "10px 20px",
-          borderRadius: 8,
-          border: "none",
-          background: "#c1335e",
-          color: "#fff",
-          fontWeight: 600,
-          fontSize: 14,
-          cursor: "pointer",
-        }}
-      >
-        Scan Next
-      </button>
-    </div>
+          {"error" in result && <div style={{ fontSize: 14, color: "#555" }}>{result.error}</div>}
+          <Dialog.Close
+            style={{
+              marginTop: 20,
+              width: "100%",
+              padding: "14px 20px",
+              borderRadius: 8,
+              border: "none",
+              background: "#c1335e",
+              color: "#fff",
+              fontWeight: 600,
+              fontSize: 16,
+              cursor: "pointer",
+            }}
+          >
+            Scan Next
+          </Dialog.Close>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
