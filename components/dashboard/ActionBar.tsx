@@ -19,14 +19,39 @@ function buttonStyle(disabled: boolean): CSSProperties {
 export default function ActionBar({
   selectedIds,
   onTriggered,
+  onCheckedIn,
 }: {
   selectedIds: string[];
   onTriggered: (message: string) => void;
+  onCheckedIn: (message: string) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const disabled = selectedIds.length === 0 || busy;
+
+  async function checkInSelected() {
+    if (!window.confirm(`Check in ${selectedIds.length} selected guest(s)?`)) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/dashboard/checkin-selected", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ guestIds: selectedIds }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to check in");
+      } else {
+        onCheckedIn(data.message ?? "Checked in.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to check in");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function trigger(path: string, extraBody?: Record<string, unknown>) {
     setBusy(true);
@@ -90,6 +115,10 @@ export default function ActionBar({
         style={buttonStyle(disabled)}
       >
         Send Thank You
+      </button>
+
+      <button disabled={disabled} onClick={checkInSelected} style={buttonStyle(disabled)}>
+        ✅ Check In Selected
       </button>
 
       {error && <span style={{ color: "#c1335e", fontSize: 13 }}>{error}</span>}

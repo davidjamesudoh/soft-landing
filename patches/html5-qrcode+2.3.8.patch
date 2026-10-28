@@ -1,0 +1,60 @@
+diff --git a/node_modules/html5-qrcode/cjs/zxing-html5-qrcode-decoder.js b/node_modules/html5-qrcode/cjs/zxing-html5-qrcode-decoder.js
+index 1bb0e37..1a3be33 100644
+--- a/node_modules/html5-qrcode/cjs/zxing-html5-qrcode-decoder.js
++++ b/node_modules/html5-qrcode/cjs/zxing-html5-qrcode-decoder.js
+@@ -66,7 +66,14 @@ var ZXingHtml5QrcodeDecoder = (function () {
+         var zxingDecoder = new ZXing.MultiFormatReader(this.verbose, this.hints);
+         var luminanceSource = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
+         var binaryBitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminanceSource));
+-        var result = zxingDecoder.decode(binaryBitmap);
++        var result;
++        try {
++            result = zxingDecoder.decode(binaryBitmap);
++        }
++        catch (_a) {
++            // Invitation QR codes are inverted (light modules on a dark background), which ZXing doesn't decode by default.
++            result = zxingDecoder.decode(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminanceSource.invert())));
++        }
+         return {
+             text: result.text,
+             format: core_1.QrcodeResultFormat.create(this.toHtml5QrcodeSupportedFormats(result.format)),
+diff --git a/node_modules/html5-qrcode/es2015/zxing-html5-qrcode-decoder.js b/node_modules/html5-qrcode/es2015/zxing-html5-qrcode-decoder.js
+index ac81e2e..62c9da6 100644
+--- a/node_modules/html5-qrcode/es2015/zxing-html5-qrcode-decoder.js
++++ b/node_modules/html5-qrcode/es2015/zxing-html5-qrcode-decoder.js
+@@ -62,7 +62,14 @@ export class ZXingHtml5QrcodeDecoder {
+         const zxingDecoder = new ZXing.MultiFormatReader(this.verbose, this.hints);
+         const luminanceSource = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
+         const binaryBitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminanceSource));
+-        let result = zxingDecoder.decode(binaryBitmap);
++        let result;
++        try {
++            result = zxingDecoder.decode(binaryBitmap);
++        }
++        catch (_a) {
++            // Invitation QR codes are inverted (light modules on a dark background), which ZXing doesn't decode by default.
++            result = zxingDecoder.decode(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminanceSource.invert())));
++        }
+         return {
+             text: result.text,
+             format: QrcodeResultFormat.create(this.toHtml5QrcodeSupportedFormats(result.format)),
+diff --git a/node_modules/html5-qrcode/esm/zxing-html5-qrcode-decoder.js b/node_modules/html5-qrcode/esm/zxing-html5-qrcode-decoder.js
+index a117c82..b30a16d 100644
+--- a/node_modules/html5-qrcode/esm/zxing-html5-qrcode-decoder.js
++++ b/node_modules/html5-qrcode/esm/zxing-html5-qrcode-decoder.js
+@@ -63,7 +63,14 @@ var ZXingHtml5QrcodeDecoder = (function () {
+         var zxingDecoder = new ZXing.MultiFormatReader(this.verbose, this.hints);
+         var luminanceSource = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
+         var binaryBitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminanceSource));
+-        var result = zxingDecoder.decode(binaryBitmap);
++        var result;
++        try {
++            result = zxingDecoder.decode(binaryBitmap);
++        }
++        catch (_a) {
++            // Invitation QR codes are inverted (light modules on a dark background), which ZXing doesn't decode by default.
++            result = zxingDecoder.decode(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminanceSource.invert())));
++        }
+         return {
+             text: result.text,
+             format: QrcodeResultFormat.create(this.toHtml5QrcodeSupportedFormats(result.format)),
