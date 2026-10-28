@@ -87,3 +87,9 @@ export async function markCheckedIn(id: string): Promise<void> {
   const table = getTable();
   await table.update(id, { [CHECK_IN_FIELD]: "Yes" });
 }
+
+/** Reverts a mistaken check-in. */
+export async function markNotCheckedIn(id: string): Promise<void> {
+  const table = getTable();
+  await table.update(id, { [CHECK_IN_FIELD]: "Not yet" });
+}
