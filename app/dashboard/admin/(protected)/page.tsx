@@ -183,7 +183,14 @@ export default function DashboardHomePage() {
 
       {guests && (
         <>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 12,
+              marginBottom: 20,
+            }}
+          >
             <StatCard label="Confirmed guests" value={guests.length} />
             <StatCard
               label="Cards sent"
@@ -221,18 +228,18 @@ export default function DashboardHomePage() {
                 padding: "8px 14px",
                 borderRadius: 6,
                 border: "none",
-                background: isEventDay ? "#c1335e" : "#e5e0d8",
-                color: isEventDay ? "#fff" : "#999",
-                cursor: isEventDay ? "pointer" : "default",
+                background: "#c1335e",
+                color: "#fff",
+                cursor: "pointer",
               }}
             >
-              📷 Scan Check-in
+              📷 Scan To Check-in
             </button>
-            {!isEventDay && (
+            {/* {!isEventDay && (
               <span style={{ fontSize: 12, color: "#999" }}>
                 Opens on the wedding day ({EVENT_DAY})
               </span>
-            )}
+            )} */}
           </div>
 
           {scannerOpen && (
@@ -367,71 +374,79 @@ export default function DashboardHomePage() {
                 </p>
               ) : (
                 // Scrolls sideways inside its own box on narrow screens instead of stretching the whole page.
-                <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-                <table
+                <div
                   style={{
-                    width: "100%",
-                    minWidth: 640,
-                    borderCollapse: "collapse",
-                    fontSize: 14,
+                    overflowX: "auto",
+                    WebkitOverflowScrolling: "touch",
                   }}
                 >
-                  <thead>
-                    <tr
-                      style={{
-                        textAlign: "left",
-                        borderBottom: "2px solid #e5e0d8",
-                      }}
-                    >
-                      <th style={{ padding: "8px 6px" }}>
-                        <input
-                          type="checkbox"
-                          checked={
-                            !!filteredGuests &&
-                            filteredGuests.length > 0 &&
-                            filteredGuests.every((g) => selected.has(g.id))
-                          }
-                          onChange={toggleAll}
-                        />
-                      </th>
-                      <th style={{ padding: "8px 6px" }}>Name</th>
-                      <th style={{ padding: "8px 6px" }}>Phone</th>
-                      <th style={{ padding: "8px 6px" }}>Table</th>
-                      <th style={{ padding: "8px 6px" }}>Card Sent</th>
-                      <th style={{ padding: "8px 6px" }}>Checked In</th>
-                      <th style={{ padding: "8px 6px" }}>
-                        First Reminder Sent
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredGuests?.map((g) => (
-                      <tr key={g.id} style={{ borderBottom: "1px solid #eee" }}>
-                        <td style={{ padding: "8px 6px" }}>
+                  <table
+                    style={{
+                      width: "100%",
+                      minWidth: 640,
+                      borderCollapse: "collapse",
+                      fontSize: 14,
+                    }}
+                  >
+                    <thead>
+                      <tr
+                        style={{
+                          textAlign: "left",
+                          borderBottom: "2px solid #e5e0d8",
+                        }}
+                      >
+                        <th style={{ padding: "8px 6px" }}>
                           <input
                             type="checkbox"
-                            checked={selected.has(g.id)}
-                            onChange={() => toggleOne(g.id)}
+                            checked={
+                              !!filteredGuests &&
+                              filteredGuests.length > 0 &&
+                              filteredGuests.every((g) => selected.has(g.id))
+                            }
+                            onChange={toggleAll}
                           />
-                        </td>
-                        <td style={{ padding: "8px 6px" }}>{g.name}</td>
-                        <td style={{ padding: "8px 6px" }}>{g.phone}</td>
-                        <td style={{ padding: "8px 6px" }}>
-                          {g.tableNumber ?? "—"}
-                        </td>
-                        <td style={{ padding: "8px 6px" }}>
-                          <Badge value={g.cardSent} />
-                        </td>
-                        <td style={{ padding: "8px 6px" }}>
-                          <Badge value={g.checkedIn} />
-                        </td>
-                        <td style={{ padding: "8px 6px" }}>
-                          <Badge value={g.reminderSent} />
-                        </td>
+                        </th>
+                        <th style={{ padding: "8px 6px" }}>Name</th>
+                        <th style={{ padding: "8px 6px" }}>Phone</th>
+                        <th style={{ padding: "8px 6px" }}>Table</th>
+                        <th style={{ padding: "8px 6px" }}>Card Sent</th>
+                        <th style={{ padding: "8px 6px" }}>Checked In</th>
+                        <th style={{ padding: "8px 6px" }}>
+                          First Reminder Sent
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {filteredGuests?.map((g) => (
+                        <tr
+                          key={g.id}
+                          style={{ borderBottom: "1px solid #eee" }}
+                        >
+                          <td style={{ padding: "8px 6px" }}>
+                            <input
+                              type="checkbox"
+                              checked={selected.has(g.id)}
+                              onChange={() => toggleOne(g.id)}
+                            />
+                          </td>
+                          <td style={{ padding: "8px 6px" }}>{g.name}</td>
+                          <td style={{ padding: "8px 6px" }}>{g.phone}</td>
+                          <td style={{ padding: "8px 6px" }}>
+                            {g.tableNumber ?? "—"}
+                          </td>
+                          <td style={{ padding: "8px 6px" }}>
+                            <Badge value={g.cardSent} />
+                          </td>
+                          <td style={{ padding: "8px 6px" }}>
+                            <Badge value={g.checkedIn} />
+                          </td>
+                          <td style={{ padding: "8px 6px" }}>
+                            <Badge value={g.reminderSent} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </>
