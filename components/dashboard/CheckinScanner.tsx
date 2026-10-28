@@ -150,7 +150,14 @@ export default function CheckinScanner({
     scanner
       .start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
+        {
+          fps: 10,
+          // Fixed 250px used to exceed the camera view on narrow phones, which html5-qrcode rejects.
+          qrbox: (w: number, h: number) => {
+            const size = Math.floor(Math.min(w, h) * 0.7);
+            return { width: size, height: size };
+          },
+        },
         (decodedText) => handleScan(decodedText),
         () => {
           // Per-frame decode misses are normal while aiming the camera — ignore.

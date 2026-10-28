@@ -14,7 +14,7 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <div
       style={{
-        flex: 1,
+        flex: "1 1 140px",
         background: "#fff",
         border: "1px solid #e5e0d8",
         borderRadius: 10,
@@ -159,6 +159,12 @@ export default function DashboardHomePage() {
     setPollKey((k) => k + 1);
   }
 
+  function handleCheckedIn(message: string) {
+    setLastMessage(message);
+    setSelected(new Set());
+    loadGuests();
+  }
+
   function handleJobDone() {
     loadGuests(); // statuses changed in Airtable — refresh the table
   }
@@ -177,7 +183,7 @@ export default function DashboardHomePage() {
 
       {guests && (
         <>
-          <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
             <StatCard label="Confirmed guests" value={guests.length} />
             <StatCard
               label="Cards sent"
@@ -239,6 +245,7 @@ export default function DashboardHomePage() {
           <ActionBar
             selectedIds={[...selected]}
             onTriggered={handleTriggered}
+            onCheckedIn={handleCheckedIn}
           />
 
           {lastMessage && (
@@ -359,9 +366,12 @@ export default function DashboardHomePage() {
                   No guests match the current filters.
                 </p>
               ) : (
+                // Scrolls sideways inside its own box on narrow screens instead of stretching the whole page.
+                <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
                 <table
                   style={{
                     width: "100%",
+                    minWidth: 640,
                     borderCollapse: "collapse",
                     fontSize: 14,
                   }}
@@ -422,6 +432,7 @@ export default function DashboardHomePage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               )}
             </>
           )}
