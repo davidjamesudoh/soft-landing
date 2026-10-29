@@ -64,63 +64,72 @@ const RESULT_STYLES: Record<ScanResult["status"], { bg: string; color: string; l
 /**
  * Shown as a modal so "Scan Next" is always on screen — no scrolling past the camera view on phones.
  * Tapping the backdrop, pressing Escape, or "Scan Next" all close it and resume scanning.
+ *
+ * Dialog.Root stays mounted and is driven by `open` — unmounting it mid-close can leave Radix's
+ * `pointer-events: none` stuck on <body>, freezing the whole page.
  */
-function ResultCard({ result, onScanNext }: { result: ScanResult; onScanNext: () => void }) {
+function ResultModal({ result, onScanNext }: { result: ScanResult | null; onScanNext: () => void }) {
+  return (
+    <Dialog.Root open={result !== null} onOpenChange={(open) => !open && onScanNext()}>
+      {result && <ResultCard result={result} />}
+    </Dialog.Root>
+  );
+}
+
+function ResultCard({ result }: { result: ScanResult }) {
   const s = RESULT_STYLES[result.status];
   return (
-    <Dialog.Root open onOpenChange={(open) => !open && onScanNext()}>
-      <Dialog.Portal>
-        <Dialog.Overlay
-          style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0, 0, 0, 0.55)" }}
-        />
-        <Dialog.Content
-          aria-describedby={undefined}
+    <Dialog.Portal>
+      <Dialog.Overlay
+        style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0, 0, 0, 0.55)" }}
+      />
+      <Dialog.Content
+        aria-describedby={undefined}
+        style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 1001,
+          width: "calc(100% - 32px)",
+          maxWidth: 420,
+          background: s.bg,
+          borderRadius: 12,
+          padding: 24,
+          textAlign: "center",
+          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.25)",
+        }}
+      >
+        <Dialog.Title style={{ fontSize: 15, fontWeight: 700, color: s.color, margin: "0 0 8px" }}>
+          {s.label}
+        </Dialog.Title>
+        {"name" in result && (
+          <>
+            <div style={{ fontSize: 26, fontWeight: 700, marginBottom: 4 }}>{result.name}</div>
+            {result.tableNumber && (
+              <div style={{ fontSize: 16, color: "#555" }}>Table {result.tableNumber}</div>
+            )}
+          </>
+        )}
+        {"error" in result && <div style={{ fontSize: 14, color: "#555" }}>{result.error}</div>}
+        <Dialog.Close
           style={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            zIndex: 1001,
-            width: "calc(100% - 32px)",
-            maxWidth: 420,
-            background: s.bg,
-            borderRadius: 12,
-            padding: 24,
-            textAlign: "center",
-            boxShadow: "0 10px 30px rgba(0, 0, 0, 0.25)",
+            marginTop: 20,
+            width: "100%",
+            padding: "14px 20px",
+            borderRadius: 8,
+            border: "none",
+            background: "#c1335e",
+            color: "#fff",
+            fontWeight: 600,
+            fontSize: 16,
+            cursor: "pointer",
           }}
         >
-          <Dialog.Title style={{ fontSize: 15, fontWeight: 700, color: s.color, margin: "0 0 8px" }}>
-            {s.label}
-          </Dialog.Title>
-          {"name" in result && (
-            <>
-              <div style={{ fontSize: 26, fontWeight: 700, marginBottom: 4 }}>{result.name}</div>
-              {result.tableNumber && (
-                <div style={{ fontSize: 16, color: "#555" }}>Table {result.tableNumber}</div>
-              )}
-            </>
-          )}
-          {"error" in result && <div style={{ fontSize: 14, color: "#555" }}>{result.error}</div>}
-          <Dialog.Close
-            style={{
-              marginTop: 20,
-              width: "100%",
-              padding: "14px 20px",
-              borderRadius: 8,
-              border: "none",
-              background: "#c1335e",
-              color: "#fff",
-              fontWeight: 600,
-              fontSize: 16,
-              cursor: "pointer",
-            }}
-          >
-            Scan Next
-          </Dialog.Close>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+          Scan Next
+        </Dialog.Close>
+      </Dialog.Content>
+    </Dialog.Portal>
   );
 }
 
@@ -239,7 +248,7 @@ export default function CheckinScanner({
         style={{ width: "100%", maxWidth: 420, margin: "0 auto", borderRadius: 12, overflow: "hidden" }}
       />
 
-      {result && <ResultCard result={result} onScanNext={scanNext} />}
+      <ResultModal result={result} onScanNext={scanNext} />
     </div>
   );
 }
