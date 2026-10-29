@@ -54,9 +54,16 @@ type ScanResult =
 
 const READER_ELEMENT_ID = "qr-reader";
 
-const RESULT_STYLES: Record<ScanResult["status"], { bg: string; color: string; label: string }> = {
+const RESULT_STYLES: Record<
+  ScanResult["status"],
+  { bg: string; color: string; label: string }
+> = {
   ok: { bg: "#e7f6ec", color: "#146c43", label: "✅ Checked in" },
-  already_checked_in: { bg: "#fdf1da", color: "#996a13", label: "⚠️ Already checked in" },
+  already_checked_in: {
+    bg: "#fdf1da",
+    color: "#996a13",
+    label: "⚠️ Already checked in",
+  },
   not_found: { bg: "#fde8ee", color: "#c1335e", label: "❌ Unknown QR code" },
   invalid: { bg: "#fde8ee", color: "#c1335e", label: "❌ Invalid QR code" },
 };
@@ -64,14 +71,18 @@ const RESULT_STYLES: Record<ScanResult["status"], { bg: string; color: string; l
 /**
  * Shown as a modal so "Scan Next" is always on screen — no scrolling past the camera view on phones.
  * Tapping the backdrop, pressing Escape, or "Scan Next" all close it and resume scanning.
- *
- * Dialog.Root stays mounted and is driven by `open` — unmounting it mid-close can leave Radix's
- * `pointer-events: none` stuck on <body>, freezing the whole page.
+ * Only rendered once a scan has produced a result.
  */
-function ResultModal({ result, onScanNext }: { result: ScanResult | null; onScanNext: () => void }) {
+function ResultModal({
+  result,
+  onScanNext,
+}: {
+  result: ScanResult;
+  onScanNext: () => void;
+}) {
   return (
-    <Dialog.Root open={result !== null} onOpenChange={(open) => !open && onScanNext()}>
-      {result && <ResultCard result={result} />}
+    <Dialog.Root open onOpenChange={(open) => !open && onScanNext()}>
+      <ResultCard result={result} />
     </Dialog.Root>
   );
 }
@@ -79,9 +90,15 @@ function ResultModal({ result, onScanNext }: { result: ScanResult | null; onScan
 function ResultCard({ result }: { result: ScanResult }) {
   const s = RESULT_STYLES[result.status];
   return (
+    // Portaled to <body>, so it must sit above the dashboard layout's zIndex: 99999 wrapper.
     <Dialog.Portal>
       <Dialog.Overlay
-        style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0, 0, 0, 0.55)" }}
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 100000,
+          background: "rgba(0, 0, 0, 0.55)",
+        }}
       />
       <Dialog.Content
         aria-describedby={undefined}
@@ -90,7 +107,7 @@ function ResultCard({ result }: { result: ScanResult }) {
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          zIndex: 1001,
+          zIndex: 100001,
           width: "calc(100% - 32px)",
           maxWidth: 420,
           background: s.bg,
@@ -100,18 +117,31 @@ function ResultCard({ result }: { result: ScanResult }) {
           boxShadow: "0 10px 30px rgba(0, 0, 0, 0.25)",
         }}
       >
-        <Dialog.Title style={{ fontSize: 15, fontWeight: 700, color: s.color, margin: "0 0 8px" }}>
+        <Dialog.Title
+          style={{
+            fontSize: 15,
+            fontWeight: 700,
+            color: s.color,
+            margin: "0 0 8px",
+          }}
+        >
           {s.label}
         </Dialog.Title>
         {"name" in result && (
           <>
-            <div style={{ fontSize: 26, fontWeight: 700, marginBottom: 4 }}>{result.name}</div>
+            <div style={{ fontSize: 26, fontWeight: 700, marginBottom: 4 }}>
+              {result.name}
+            </div>
             {result.tableNumber && (
-              <div style={{ fontSize: 16, color: "#555" }}>Table {result.tableNumber}</div>
+              <div style={{ fontSize: 16, color: "#555" }}>
+                Table {result.tableNumber}
+              </div>
             )}
           </>
         )}
-        {"error" in result && <div style={{ fontSize: 14, color: "#555" }}>{result.error}</div>}
+        {"error" in result && (
+          <div style={{ fontSize: 14, color: "#555" }}>{result.error}</div>
+        )}
         <Dialog.Close
           style={{
             marginTop: 20,
@@ -166,7 +196,10 @@ export default function CheckinScanner({
       } catch (err) {
         setResult({
           status: "invalid",
-          error: err instanceof Error ? err.message : "Network error — could not reach the server.",
+          error:
+            err instanceof Error
+              ? err.message
+              : "Network error — could not reach the server.",
         });
       }
     },
@@ -218,8 +251,17 @@ export default function CheckinScanner({
         marginBottom: 20,
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Check-in Scan</h2>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 12,
+        }}
+      >
+        <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>
+          Check-in Scan
+        </h2>
         <button
           onClick={onClose}
           style={{
@@ -238,17 +280,24 @@ export default function CheckinScanner({
 
       {cameraError && (
         <p style={{ color: "#c1335e", fontSize: 14, marginBottom: 12 }}>
-          Camera error: {cameraError}. Make sure this page has camera permission (and that you&apos;re
-          on HTTPS or localhost — browsers block camera access otherwise).
+          Camera error: {cameraError}. Make sure this page has camera permission
+          (and that you&apos;re on HTTPS or localhost — browsers block camera
+          access otherwise).
         </p>
       )}
 
       <div
         id={READER_ELEMENT_ID}
-        style={{ width: "100%", maxWidth: 420, margin: "0 auto", borderRadius: 12, overflow: "hidden" }}
+        style={{
+          width: "100%",
+          maxWidth: 420,
+          margin: "0 auto",
+          borderRadius: 12,
+          overflow: "hidden",
+        }}
       />
 
-      <ResultModal result={result} onScanNext={scanNext} />
+      {result && <ResultModal result={result} onScanNext={scanNext} />}
     </div>
   );
 }
